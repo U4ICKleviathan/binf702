@@ -199,6 +199,9 @@ head(sdGenes)
 thresholdIndex <- sdGenes > 0.5
 
 golub[thresholdIndex,]
+# large matrix.... too big to print
+
+
 
 # (c) How many genes have this property?
 nrow(golub[thresholdIndex,])  
@@ -257,18 +260,23 @@ write.csv(golub.gnames[orderedMean[1:10], 2:3], file=paste(getwd(),"/top_10_golu
 ############################################################################### 
 ############################################################################### 
 
-
-
 # 6. Constructing a factor. Construct factors that correspond to the
 # following setting.
 # (a) An experiment with two conditions each with four measurements.
 factor <- gl(2,4)
+# [1] 1 1 1 1 2 2 2 2
+# Levels: 1 2
 
 # (b) Five conditions each with three measurements.
 factor <- gl(5,3)
+# [1] 1 1 1 2 2 2 3 3 3 4 4 4 5 5 5
+# Levels: 1 2 3 4 5
+
 
 # (c) Three conditions each with five measurements
 factor <- gl(3,5)
+# [1] 1 1 1 1 1 2 2 2 2 2 3 3 3 3 3
+# Levels: 1 2 3
 
 
 ############################################################################### 
@@ -287,6 +295,11 @@ data(ALL)
 # gene expressions across these patients.
 
 meanAll <- apply(exprs(ALL[ ,ALL$BT=="B1"]), 2, mean )
+meanAll
+# 04006    04008    04010    04016    15001    15004    16004    19005    24005    26008    28024    28028    28031    28032    31007    33005    43001    63001    68001 
+# 5.630800 5.640141 5.628059 5.596646 5.615989 5.584152 5.590665 5.600596 5.621150 5.620663 5.637843 5.650265 5.615265 5.628808 5.635481 5.650342 5.643352 5.647178 5.637771 
+
+
 
 # (b) Give the gene identifiers of the three genes with the largest mean
 # expression.
