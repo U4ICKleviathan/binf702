@@ -177,4 +177,126 @@ golub.gnames[o[1:3],]
 # [3,] "7097" "GAPD Glyceraldehyde-3-phosphate dehydrogenase"                                      "X01677_f_at"     
 
 
+############################################################################### 
+############################################################################### 
+############################################################################### 
+############################################################################### 
+
+
+# 4. Computations of gene expression standard deviations in the
+# Golub data.
+
+# (a) Use apply() to compute the standard deviation per gene.
+sdGenes <- apply(golub, 1, sd)
+head(sdGenes)
+# > head(sdGenes)
+# [1] 0.5878202 0.5292176 0.4999966 1.7157505 1.7212612 1.6166706
+
+
+# (b) Select the expression values of the genes with standard deviation
+# larger than 0.5.
+
+thresholdIndex <- sdGenes > 0.5
+
+golub[thresholdIndex,]
+
+# (c) How many genes have this property?
+nrow(golub[thresholdIndex,])  
+# 1498 records
+
+
+############################################################################### 
+############################################################################### 
+############################################################################### 
+############################################################################### 
+
+# 5. Oncogenes in Golub data.
+# (a) How many oncogenes are there in the dataset? Hint: Use grep().
+head(golub.gnames)
+onco <- grep("oncogene",golub.gnames[ ,2], ignore.case = TRUE)
+length(onco)
+
+# 47 onco genes
+
+
+# (b) Find the biological names of the three oncogenes with the largest
+# mean expression value for the ALL patients.
+meanOnco = apply(golub[onco,],1, mean)
+orderedMean = order(meanOnco, decreasing=TRUE)
+golub.gnames[onco[orderedMean[1:3]],]
+
+# [,1]   [,2]                                          [,3]            
+# [1,] "4012" "Cellular oncogene c-fos (complete sequence)" "V01512_rna1_at"
+# [2,] "6247" "PIM1 Pim-1 oncogene"                         "M54915_s_at"   
+# [3,] "6285" "Proto-oncogene BCL3 gene"                    "U05681_s_at"   
+
+
+# (c) Do the same for the AML patients.
+golubFactor <- factor(golub.cl, levels=0:1, labels = c("ALL","AML"))
+meanAml <- apply(golub[,golubFactor=='AML'],1, mean)
+length(meanAml)
+orderedMeanAml = order(meanAml, decreasing=TRUE)
+golub.gnames[orderedMeanAml[1:3],]
+# [,1]   [,2]                                                           [,3]                
+# [1,] "5998" "GB DEF = mRNA fragment for elongation factor TU (N-terminus)" "X03689_s_at"       
+# [2,] "5648" "GB DEF = HLA-B null allele mRNA"                              "D49824_s_at"       
+# [3,] "5711" "Globin, Beta"                                                 "HG1428-HT1428_s_at"
+
+
+
+# (d) Write the gene probe ID and the gene names of the ten genes with
+# largest mean expression value to a csv file.
+totalMean <- apply(golub, 1, mean)
+orderedMean <- order(totalMean, decreasing=TRUE)
+golub.gnames[orderedMean[1:10], 2:3]
+write.csv(golub.gnames[orderedMean[1:10], 2:3], file=paste(getwd(),"/top_10_golub.csv", sep = ""))
+
+
+############################################################################### 
+############################################################################### 
+############################################################################### 
+############################################################################### 
+
+
+
+# 6. Constructing a factor. Construct factors that correspond to the
+# following setting.
+# (a) An experiment with two conditions each with four measurements.
+factor <- gl(2,4)
+
+# (b) Five conditions each with three measurements.
+factor <- gl(5,3)
+
+# (c) Three conditions each with five measurements
+factor <- gl(3,5)
+
+
+############################################################################### 
+############################################################################### 
+############################################################################### 
+############################################################################### 
+
+# 7. Gene means for B1 patients. Load the ALL data from the ALL
+# library and use str() and openVignette() for further information
+# about this dataset.
+
+library(ALL)
+data(ALL)
+
+# (a) Use exprs(ALL[ ,ALL$BT==‘‘B1’’]) to extract the gene expressions from the patients in disease stage B1. Compute the mean
+# gene expressions across these patients.
+
+meanAll <- apply(exprs(ALL[ ,ALL$BT=="B1"]), 2, mean )
+
+# (b) Give the gene identifiers of the three genes with the largest mean
+# expression.
+
+openVignette()
+
+meanAll <- apply(exprs(ALL), 1, mean)
+orderedMean <- order(meanAll, decreasing = TRUE)
+
+row.names(exprs(ALL[orderedMean[1:3]]))
+# [1] "AFFX-hum_alu_at" "31957_r_at"      "36546_r_at"     
+
 
