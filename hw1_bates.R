@@ -9,7 +9,6 @@
 library(multtest)
 data(golub)
 library(ALL)
-
 class(golub)
 class(golub[1, 1])
 class(golub.cl)
