@@ -1,0 +1,531 @@
+---
+title: "Homework 2 - BINF 702"
+author: "Ian Bates"
+date: "2/1/2022"
+output: 
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. Illustration of mean and standard deviation.
+
+
+### (a) Compute the mean and the standard deviation for 1, 1.5, 2, 2.5, 3.
+
+
+```{r}
+vecA <- c(1, 1.5, 2, 2.5, 3.)
+meanA <- mean(vecA) 
+meanA
+
+stdA <- sd(vecA)
+stdA
+
+```
+### (b) Compute the mean and the standard deviation for 1, 1.5, 2, 2.5, 30.
+
+```{r}
+vecB <- c(1, 1.5, 2, 2.5, 30.)
+meanB <- mean(vecB)
+meanB
+stdB <- sd(vecB)
+stdB
+
+```
+
+### (c) Comment on the differences.
+
+
+>When we see the last value in the list change to 30, we see a a significant change in the mean values, but the change in the standard deviation is quite striking.
+
+
+
+# 2. Testing normality of gene expression. Consider the gene expression values in row 790 and 66 of the Golub et al. (1999) data.
+
+### (a) Produce a box plot for the expression values of the ALL patients and comment on the differences. Are there outliers?
+
+
+```{r  fig2, fig.height = 8, fig.width = 16, fig.align = "center"}
+
+data(golub, package = "multtest")
+golubFactor <- factor(golub.cl,levels=0:1, labels= c("ALL","AML"))
+
+par(mfrow=c(1,2))
+
+rowIndex <- 790
+boxplot(golub[rowIndex, ] ~ golubFactor, # values
+           cex.lab=1.5, 
+           main= paste("Row", rowIndex),
+           xlab="Golub Factor",
+           ylab="Gene Expression",
+           col=c("purple","green")
+)
+rowIndex <- 66
+boxplot(golub[rowIndex, ] ~ golubFactor, # values
+           cex.lab=1.5, 
+           main= paste("Row", rowIndex),
+           xlab="Golub Factor",
+           ylab="Gene Expression",
+           col=c("purple","green")
+)
+
+```
+
+>For the Genes in row 66, we don't see any outliers.  But when we look at row 790, we see that there are 3 outliers for the ALL patients and 1 outlier for the AML patients.
+
+
+
+### (b) Produce a QQ-plot and formulate a hypothesis about the normality of the genes.
+
+
+```{r fig.height = 8, fig.width = 16, fig.align = "center"}
+data(golub, package="multtest")
+golubFactor <- factor(golub.cl,levels=0:1, labels= c("ALL","AML"))
+
+
+par(mfrow=c(1,2))
+
+rowIndex <- 790
+qqnorm(golub[rowIndex, golubFactor=='ALL'], 
+       pch=19, # plot solid circles
+       cex.lab=1.5, # make axis labels big
+       col="red",
+       main=paste("Golub Factor = ALL; Row", rowIndex),
+       );
+qqline(golub[rowIndex, golubFactor=='ALL'], col="blue")
+
+rowIndex <- 66
+qqnorm(golub[rowIndex, golubFactor=='ALL'], 
+       pch=19, # plot solid circles
+       cex.lab=1.5, # make axis labels big
+       col="red",
+       main=paste("Golub Factor = ALL; Row", rowIndex),
+      );
+qqline(golub[rowIndex, golubFactor=='ALL'], col="blue")
+
+
+
+```
+
+>When we look at the QQ-plot for the gene in 790, we see that the sample quartiles deviate from the straight line of the center of the distribution.
+
+>For row 66, the sample qualtiles are distributed much closer to the line.  Therefore, the gene expression of gene 66 are normally distributed.
+
+
+
+### (c) Compute the mean and the median for the expression values of the ALL patients and compare these. Do this for both genes
+```{r}
+data(golub, package="multtest")
+golubFactor <- factor(golub.cl,levels=0:1, labels= c("ALL","AML"))
+
+rowIndex <- 790
+mean790 <- mean(golub[rowIndex,golubFactor=="ALL"])
+median790 <- median(golub[rowIndex,golubFactor=="ALL"])
+
+
+rowIndex <- 66
+mean66 <- mean(golub[rowIndex,golubFactor=="ALL"])
+median66 <- median(golub[rowIndex,golubFactor=="ALL"])
+```
+
+>The values for the mean of row 790 *`r mean790`* and median *`r median790`* have an absolute difference of *`r abs(mean790-median790)` *
+
+>The values for the mean of row 66 *`r mean66`* and median *`r median66`* have an absolute difference of *`r abs(mean66-median66)` *
+
+>This shows us that for the ALL patients, the expression of gene on 790 has more variance than row 66.  This is likely due to the outliers in gene 790
+
+# 3. Effect size. An important statistic to measure is the effect size which is defined for a sample as x/s. It measures the mean relative to the standard deviation, so that its value is large when the mean is large and the standard deviation small.
+
+
+### (a) Determine the five genes with the largest effect size of the ALL patients from the Golub et al. (1999) data. Comment on their size.
+
+```{r}
+data(golub, package="multtest")
+golubFactor <- factor(golub.cl,levels=0:1, labels= c("ALL","AML"))
+
+meanTotalALL <- mean(golub[,golubFactor=="ALL"])
+effectSize = apply(golub[,golubFactor=="ALL"], 1, function(x) mean(x)/sd(x))
+orderedEffectSize <- order(effectSize, decreasing=TRUE)
+
+orderedEffect <- effectSize[orderedEffectSize[1:5]]
+orderedEffect
+
+orderedEffectNames <- golub.gnames[orderedEffectSize[1:5],2]
+orderedEffectNames
+```
+>The maximum ordered effect *`r orderedEffect[1]`* is quite large when compared to the median gene expression of all genes for the ALL patients, which is *`r meanTotalALL`*
+
+### (b) Invent a robust variant of the effect size and use it to answer the previous question.
+
+
+```{r}
+data(golub, package="multtest")
+golubFactor <- factor(golub.cl,levels=0:1, labels= c("ALL","AML"))
+
+newEffectSize <- apply(golub[,golubFactor=="ALL"], 1, function(x) median(x)/sd(x))
+orderedNEF <- order(newEffectSize, decreasing = TRUE)
+
+newEffectSize[orderedNEF[1:5]]
+
+golub.gnames[orderedNEF[1:5],2]
+
+
+```
+
+# 4. Plotting gene expressions for CCND3. Use the gene expressions from CCND3 (Cyclin D3) of Golub et al. (1999) collected in row 1042 of the matrix golub from the multtest library. Use grep() to get the correct row for the CCND3 (Cyclin D3) gene expression values. After using the function plot(), you will produce an object on which you can program.
+
+### (a) Produce a so-called stripchart for the gene expressions separately for the ALL as well as for the AML patients. Hint: Use factor() to separate the data between the two categories. 
+
+```{r fig.height = 4, fig.width = 8, fig.align = "center"}
+data(golub, package="multtest")
+golubFactor <- factor(golub.cl,levels=0:1, labels= c("ALL","AML"))
+
+par(mfrow=c(1,1))
+
+ccnd3 <- grep("CCND3",golub.gnames[ ,2], ignore.case = TRUE)
+
+stripchart(golub[ccnd3,] ~ golubFactor, # values
+           main="CDND3 Expression for AML and ALL patients",
+           method="jitter", # add random horizontal jitter
+           cex.lab=2.5, # make axis labels big
+           # vertical = TRUE, # boxplots vertical
+           cex.lab=1.5, # make axis labels big
+           col=c("red", "darkgreen"),
+           xlab="Leukemia subtype",
+           ylab=NULL)
+
+```
+
+### (b) Rotate the plot to a vertical position and keep it that way for the
+questions to come.
+
+
+```{r  fig.align = "center"}
+
+stripchart(golub[ccnd3,] ~ golubFactor, # values
+           main="CDND3 Expression for AML and ALL patients",
+           method="jitter", # add random horizontal jitter
+           cex.lab=2.5, # make axis labels big
+           vertical = TRUE, # boxplots vertical
+           cex.lab=1.5, # make axis labels big
+           col=c("red", "darkgreen"),
+           xlab="Leukemia subtype",
+           ylab=NULL)
+
+```
+
+### (c) Color the ALL expressions red and AML blue. Hint: Use the col
+parameter.
+
+```{r  fig.align = "center"}
+
+stripchart(golub[ccnd3,] ~ golubFactor, # values
+           main="CDND3 Expression for AML and ALL patients",
+           method="jitter", # add random horizontal jitter
+           cex.lab=2.5, # make axis labels big
+           vertical = TRUE, # boxplots vertical
+           cex.lab=1.5, # make axis labels big
+           col=c("red", "blue"),
+           xlab="Leukemia subtype",
+           ylab=NULL)
+
+```
+
+
+### (d) Add a title to the plot. Hint: Use the title() function.
+
+```{r  fig.align = "center"}
+
+stripchart(golub[ccnd3,] ~ golubFactor, # values
+           main="CDND3 Expression for AML and ALL patients",
+           method="jitter", # add random horizontal jitter
+           cex.lab=2.5, # make axis labels big
+           vertical = TRUE, # boxplots vertical
+           cex.lab=1.5, # make axis labels big
+           col=c("red", "blue"),
+           xlab="Leukemia subtype",
+           ylab=NULL)
+
+```
+
+### (e) Change the boxes into stars. Hint 1: Use the pch parameter. Hint 2: Using your favorite text editor, save the final script for later use.
+
+```{r  fig.align = "center"}
+
+stripchart(golub[ccnd3,] ~ golubFactor, # values
+           main="CDND3 Expression for AML and ALL patients",
+           method="jitter", # add random horizontal jitter
+           cex.lab=2.5, # make axis labels big
+           vertical = TRUE, # boxplots vertical
+           cex.lab=1.5, # make axis labels big
+           col=c("red", "blue"),
+           xlab="Leukemia subtype",
+           pch="*",
+           ylab=NULL)
+
+```
+
+
+
+# 5. Box-and-Whiskers plot of CCND3 expression. Use the gene expressions for CCND3 (Cyclin D3) of Golub et al. (1999) from row 1042 of the matrix golub for the ALL patients. Use grep() to get the correct row for the CCND3 (Cyclin D3) gene expression values. 
+
+### (a) Construct the box plot in Figure 2.15.
+
+```{r fig.height = 6, fig.width = 6, fig.align = "center" }
+data(golub, package="multtest")
+golubFactor <- factor(golub.cl,levels=0:1, labels= c("ALL","AML"))
+
+ccnd3 <- grep("CCND3",golub.gnames[ ,2], ignore.case = TRUE)
+
+ccnd3Box <- boxplot(
+  golub[ccnd3,golubFactor=="ALL"],
+  cex.lab = 1.5,
+  xlab = "Golub Factor",
+  ylab = "Gene Expression",
+  main = "CDND3 Expression for ALL patients",
+  col=c("green"),
+  coef = 1.5,
+  do.conf = TRUE, 
+  do.out = TRUE
+)
+
+```
+
+### (b) Add text to the plot to explain the meaning of the upper and lower part of the box.
+### (c) Do the same for the whiskers.
+### (d) Export your plot to eps format.
+```{r fig.height = 6, fig.width = 6, fig.align = "center" }
+ccnd3Box <- boxplot(
+  golub[ccnd3,golubFactor=="ALL"],
+  cex.lab = 1.5,
+  xlab = "Golub Factor",
+  ylab = "Gene Expression",
+  main = "CDND3 Expression for ALL patients",
+  col=c("green"),
+  coef = 1.5,
+  do.conf = TRUE, 
+  do.out = TRUE,
+  xlim=c(0,4)
+)
+
+arrows(2.5,ccnd3Box$stats[1],1.3,  ccnd3Box$stats[1])
+text(3,ccnd3Box$stats[1],"Lower Wisker")
+
+arrows(2.5,ccnd3Box$stats[2],1.3,  ccnd3Box$stats[2])
+text(3,ccnd3Box$stats[2],"First Quartile")
+
+arrows(2.5,ccnd3Box$stats[3],1.3,  ccnd3Box$stats[3])
+text(3,ccnd3Box$stats[3],"Median")
+
+arrows(2.5,ccnd3Box$stats[4],1.3,  ccnd3Box$stats[4])
+text(3,ccnd3Box$stats[4],"Third Quartile")
+
+arrows(2.5,ccnd3Box$stats[5],1.3,  ccnd3Box$stats[5])
+text(3,ccnd3Box$stats[5],"Upper Wisker")
+
+arrows(2.5,ccnd3Box$out[1],1.3,  ccnd3Box$out[1])
+text(3,ccnd3Box$out[1],"Outlier")
+
+arrows(2.5,ccnd3Box$out[2],1.3,  ccnd3Box$out[2])
+text(3,ccnd3Box$out[2],"Outlier")
+
+arrows(2.5,ccnd3Box$out[3],1.3,  ccnd3Box$out[3])
+text(3,ccnd3Box$out[3],"Outlier")
+
+
+
+postscript("ccnd3.eps", width = 12, height = 17, horizontal = FALSE, 
+           onefile = FALSE)
+dev.off()
+
+
+
+```
+
+
+# 6. Box-and-whiskers plot of patients. 
+
+### (a) Use boxplot(data.frame(golub)) to produce a box-and-whiskers plot for each column (patient). Make a screen shot to save it in a word processor. Describe what you see. Are the medians of similar size? Is the inter quartile range more or less equal? Are there outliers?
+
+```{r fig.height = 10, fig.width = 20, fig.align = "center" }
+
+allPatients <- boxplot(data.frame(golub))
+
+
+```
+>Looking at the total boxplot, we see that all of the median values are hovering close to 0. But when we look at the first quartile, we see that there is more variability. with 27 with a lowest first quartile. 
+
+>Most of the boxes have an outlier, however, they all appear on the upper limits of the expression.
+
+### (b) Compute the mean and medians of the patients. What do you observe? 
+
+```{r}
+
+meanGolub <- apply(golub, 2, mean)
+medianGolub <- apply(golub, 2, median)
+max(meanGolub)
+max(medianGolub)
+min(meanGolub)
+min(medianGolub)
+
+
+```
+
+>The mean values have a range of expression between *`r max(meanGolub)`* and *`r min(meanGolub)`*
+
+>The absolute difference between the max and min is *`r abs(max(meanGolub)-min(meanGolub))`*
+
+>The median values have a range of expression between *`r max(medianGolub)`* and *`r min(medianGolub)`*
+
+>The absolute difference between the max and min is *`r abs(max(medianGolub)-min(medianGolub))`*
+
+
+
+
+### (c) Compute the range (minimal and maximum value) of the standard deviations, the IQR and MAD of the patients. Comment on what you observe.
+
+
+```{r}
+sdGolubPatients<-apply(golub,2,sd)
+range(sdGolubPatients)
+iqrGolubPatients<-apply(golub,2,function(x) IQR(x)/1.349)
+range(iqrGolubPatients)
+madGolubPatients<-apply(golub,2,mad)
+range(madGolubPatients)
+
+```
+>The range of values between the standard deviations are very close together.  The max and min are both close to 1.
+
+>The IQR has the highest range of values `r range(iqrGolubPatients)` with an absolute difference of `r abs(max(iqrGolubPatients) - min(iqrGolubPatients))`
+
+
+
+# 7. Oncogenes in the Golub et al. (1999) data. 
+### (a) Select the oncogenes with the grep(“oncogene”) function and produce a box-and-whiskers plot of the gene expressions of the ALL patients. Be sure to perform a case-insensitive grep() search. 
+
+
+```{r fig.height = 8, fig.width = 16, fig.align = "center"}
+data(golub, package="multtest")
+golubFactor <- factor(golub.cl,levels=0:1, labels= c("ALL","AML"))
+
+onco <- grep("oncogene",golub.gnames[ ,2], ignore.case = TRUE)
+genesALL <- data.frame(golub[onco, golubFactor=="ALL" ])
+row.names(genesALL) <- golub.gnames[onco,3]
+par(mar = c(13, 10, 4, 2) + 0.1)
+
+allBox <- boxplot(t(genesALL), 
+          cex.lab = 1.5,
+          # xlab = "Onco Genes",
+          ylab = "Gene Expression",
+          main = "ONCOGENE Expression ALL patients",
+ xaxt = "n",
+ coef = 1.5,
+  do.conf = TRUE, 
+  do.out = TRUE
+        )
+
+tick <- seq_along(allBox$names)
+axis(1, at = tick, labels = F)
+text(tick, par("usr")[3] - 0.2, allBox$names, srt = 90, xpd = T, adj=1 )
+
+
+```
+
+### (b) Do the same for the AML patients and use par(mfrow=c(2,1)) to combine the two plots such that the second is beneath the first. The par(mfrow=c(2,1)) command splits the plotting canvas into 2 rows and 1 column. After the two boxplot() calls then you can go back to the default 1 plot per window behavior with the par(mfrow=c(1,1)) command. Are there genes with clear differences between the groups? 
+
+
+
+```{r fig.height = 15, fig.width = 15, fig.align = "center"}
+data(golub, package="multtest")
+golubFactor <- factor(golub.cl,levels=0:1, labels= c("ALL","AML"))
+
+
+par(mfrow=c(2,1),mar = c(10, 10, 4, 2) + 0.1)
+onco <- grep("oncogene",golub.gnames[ ,2], ignore.case = TRUE)
+
+genesALL <- data.frame(golub[onco, golubFactor=="ALL" ])
+genesAML <- data.frame(golub[onco, golubFactor=="AML" ])
+row.names(genesALL) <- golub.gnames[onco,3]
+row.names(genesAML) <- golub.gnames[onco,3]
+
+allBox <- boxplot(t(genesALL), 
+          cex.lab = 1.5,
+          # xlab = "Onco Genes",
+          ylab = "Gene Expression",
+          main = "ONCOGENE Expression ALL patients",
+ xaxt = "n",
+ coef = 1.5,
+  do.conf = TRUE, 
+  do.out = TRUE
+        )
+
+tick <- seq_along(allBox$names)
+axis(1, at = tick, labels = F)
+text(tick, par("usr")[3] - 0.2, allBox$names, srt = 90, xpd = T, adj=1 )
+
+
+amlBox <- boxplot(t(genesAML), 
+          cex.lab = 1.5,
+          # xlab = "Onco Genes",
+          ylab = "Gene Expression",
+          main = "ONCOGENE Expression AML patients",
+ xaxt = "n",
+ coef = 1.5,
+  do.conf = TRUE, 
+  do.out = TRUE
+        )
+
+tick <- seq_along(amlBox$names)
+axis(1, at = tick, labels = F)
+text(tick, par("usr")[3] - 0.2, amlBox$names, srt = 90, xpd = T, adj=1 )
+
+
+
+```
+>`r amlBox$names[1]` [index 1] and `r tail(amlBox$names, n=6)[1]` [index -6] are 2 genes that have tremendously narrow ranges of expression for the ALL patients while a dramatically larger box in the AML patients.
+
+
+>The only immediately (visually) aparent gene that does not follow this pattern of narrow values in the ALL patients and the AML patients is gene `r amlBox$names[3]`.  In this gene, we see that the values of this gene for the ALL patients have a wider range than the values in the AML patients.
+
+>Overall, the ALL patients appear to have narrower ranges of expression when compared to the ALL patients
+
+
+
+# 8. Descriptive statistics for the ALL gene expression values. 
+### (a) Compute the mean and median for gene expression values of the ALL patients, report their range and comment on it. 
+
+```{r}
+golubFactor <- factor(golub.cl,levels=0:1, labels= c("ALL","AML"))
+
+allDf <- data.frame(golub[,golubFactor=="ALL"])
+
+
+range(apply(allDf,1,mean))
+range(apply(allDf,1,median))
+
+```
+>The ranges of values appear to be marginally different between the median and the mean values.
+
+>But when we consider that the range themselves are quite large within the ALL patients, we see that there are some differences of gene expression between the patients.
+
+### (b) Compute the SD, IQR, and MAD for gene expression values of the ALL patients, report their range and comment on it. 
+
+```{r}
+data(golub, package="multtest")
+golubFactor <- factor(golub.cl,levels=0:1, labels= c("ALL","AML"))
+
+allDf <- data.frame(golub[,golubFactor=="ALL"])
+
+range(apply(allDf,1,sd))
+range(apply(allDf,1,function(x) IQR(x)/1.349))
+range(apply(allDf,1,mad))
+
+```
+
+>We see that the ranges of values are quite similar in the 3 different measurements, however, we see that of all the 3, the standard deviation has the smallest range of values when compared to the MAD and the IQR.
+

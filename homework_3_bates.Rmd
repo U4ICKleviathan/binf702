@@ -1,0 +1,54 @@
+---
+title: "Homework 3"
+author: "Ian Bates"
+date: "2/7/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. Binomial distribution. Let X be binomially distributed with n = 60 and p = 0.4. Compute the following.
+
+
+#### (a) $$P(X = 24) $$
+```{r}
+
+dbinom(x=24, size = 60, prob = 0.4)
+```
+#### $$P(X ≤ 24)$$
+
+```{r}
+sum(dbinom(x=1:24, size = 60, prob = 0.4))
+
+```
+
+#### and $$P(X ≥ 30)$$
+
+```{r}
+
+1-sum(dbinom(x=1:29, size = 60, prob = 0.4))
+
+```
+#### (b) $$P(20 ≤ X ≤ 30)$$
+```{r}
+
+sum(dbinom(x=20:30, size = 60, prob = 0.4))
+```
+#### $$P(20 ≤ X)$$
+```{r}
+
+sum(dbinom(x=1:20, size = 60, prob = 0.4))
+```
+
+
+#### (c) $$P(20 ≤ X or X ≥ 40)$$
+
+```{r}
+
+sum(dbinom(x=1:20, size = 60, prob = 0.4)) - (1-sum(dbinom(x=1:40, size = 60, prob = 0.4)))
+
+```
+
+
