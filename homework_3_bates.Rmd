@@ -1,8 +1,10 @@
 ---
 title: "Homework 3"
 author: "Ian Bates"
-date: "2/7/2022"
-output: html_document
+date: "2/21/2022"
+output:
+  word_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -12,26 +14,29 @@ knitr::opts_chunk$set(echo = TRUE)
 # 1. Binomial distribution. Let X be binomially distributed with n = 60 and p = 0.4. Compute the following.
 
 
-#### (a) $$P(X = 24) $$
+### (a)
+#### $$P(X = 24) $$
 ```{r}
 
 dbinom(x=24, size = 60, prob = 0.4)
 ```
+
 #### $$P(X ≤ 24)$$
 
 ```{r}
-sum(dbinom(x=1:24, size = 60, prob = 0.4))
+pbinom(q=24, size = 60, prob = 0.4)
 
 ```
 
-#### and $$P(X ≥ 30)$$
+#### $$P(X ≥ 30)$$
 
 ```{r}
 
-1-sum(dbinom(x=1:29, size = 60, prob = 0.4))
+pbinom(q=29, size=60, prob=0.4, lower.tail = FALSE)
 
 ```
-#### (b) $$P(20 ≤ X ≤ 30)$$
+### (b) 
+#### $$P(20 ≤ X ≤ 30)$$
 ```{r}
 
 sum(dbinom(x=20:30, size = 60, prob = 0.4))
@@ -39,16 +44,482 @@ sum(dbinom(x=20:30, size = 60, prob = 0.4))
 #### $$P(20 ≤ X)$$
 ```{r}
 
-sum(dbinom(x=1:20, size = 60, prob = 0.4))
+pbinom(q=19, size=60, prob=0.4, lower.tail = FALSE)
+
 ```
 
 
-#### (c) $$P(20 ≤ X or X ≥ 40)$$
+### (c) 
+#### $$P(20 ≤ X or X ≥ 40)$$
 
 ```{r}
 
-sum(dbinom(x=1:20, size = 60, prob = 0.4)) - (1-sum(dbinom(x=1:40, size = 60, prob = 0.4)))
+pbinom(q=19, size=60, prob=0.4, lower.tail = FALSE)
+
 
 ```
+#### $$P(20 ≤ X and X ≥ 10)$$
+
+
+```{r}
+
+pbinom(q=9, size=60, prob=0.4, lower.tail = FALSE)
+
+```
+### (d) The mean and standard deviation of X.
+
+
+```{r}
+n = 60
+p = 0.4
+
+exampleMean <- n*p
+exampleMean
+
+variance <- sqrt(n*p*(1-p))
+variance
+
+```
+
+
+### (e) The quantiles:
+#### $$x_{0.025}$$
+
+```{r}
+qbinom(p = 0.025, size = 60, prob = 0.4)
+```
+#### $$x_{0.025}$$
+```{r}
+qbinom(p = 0.5, size = 60, prob = 0.4)
+```
+
+
+#### $$x_{0.975}$$
+```{r}
+qbinom(p = 0.975, size = 60, prob = 0.4)
+```
+
+
+
+# 2. Standard normal distribution. Compute the following probabilities and quantiles
+
+### $$(a) P(1.6 < Z < 2.3)$$
+
+```{r}
+
+pnorm(2.3) - pnorm(1.6)
+
+```
+### b) $$P(Z < 1.64)$$
+```{r}
+
+pnorm(1.64)
+
+```
+### c) $$P(−1.64 < Z < −1.02)$$.
+```{r}
+
+pnorm(-1.02) - pnorm(-1.64)
+
+```
+### (d) $$ P(−1.96 < Z < 1.96) $$
+```{r}
+
+pnorm(1.96) - pnorm(-1.96)
+
+```
+
+### (e) $$ P(−1.96 < Z < 1.96) $$
+```{r}
+
+pnorm(1.96) - pnorm(-1.96)
+
+```
+
+### (f) The quantiles
+#### $$ z_{0.025} $$
+```{r}
+
+qnorm(0.025) 
+
+```
+
+#### $$ z_{0.05} $$
+```{r}
+
+qnorm(0.05) 
+
+```
+
+#### $$ z_{0.5} $$
+```{r}
+
+qnorm(0.5) 
+
+```
+#### $$ z_{0.95} $$
+```{r}
+
+qnorm(0.95) 
+
+```
+#### $$ z_{0.975} $$
+```{r}
+
+qnorm(0.975) 
+
+```
+
+# 3. Normal distribution. Compute for X distributed as N (10, 2) the following probabilities and quantiles.
+
+### (a) $$P(X < 12)$$
+
+```{r}
+
+pnorm(12, 10, 2)
+
+```
+### (b) $$P(X > 8)$$
+
+
+```{r}
+
+1 - pnorm(8, 10, 2)
+
+```
+
+
+
+### (c) $$P(9 < X < 10, 5)$$
+
+```{r}
+
+pnorm(10.5, 10, 2) - pnorm(9, 10, 2)
+
+```
+
+
+### (d) The quantiles
+
+#### $$x_{0.025}$$
+
+```{r}
+
+qnorm(0.025, 10, 2)
+
+```
+
+
+#### $$x_{0.5}$$
+
+```{r}
+
+qnorm(0.5, 10, 2)
+
+```
+
+
+#### $$x_{0.975}$$
+
+```{r}
+
+qnorm(0.975, 10, 2)
+
+```
+
+
+# 4. t-distribution. Compute the following probabilities and quantiles for the t6 distribution.
+
+
+### (a) $$P(t_{6} < 1)$$
+
+```{r}
+
+pt(1, 6)
+
+```
+
+
+
+### (b) $$P(t_{6} > 2)$$
+
+```{r}
+
+1- pt(2, 6)
+
+```
+
+
+### (c) $$ P(−1 < t_{6} < 1) $$
+
+```{r}
+
+pt(1, 6) - pt(-1,6)
+
+```
+
+### (d) $$ P(−2 < t_{6} < −2) $$
+
+```{r}
+
+pt(-2, 6) - pt(-2,6)
+
+```
+
+### (e) The quantiles 
+#### $$t_{0.025}$$
+```{r}
+qt(0.025, 6)
+```
+
+#### $$t_{0.5}$$
+```{r}
+qt(0.5, 6)
+```
+
+#### $$t_{0.975}$$
+```{r}
+qt(0.975, 6)
+```
+
+#  5. F distribution. Compute the following probabilities and quantiles for the F8,5 distribution.
+
+
+### (a) $$ P(F_{8,5} < 3)$$
+```{r}
+pf(3 , 8,5)
+
+```
+
+### (b) $$ P(F_{8,5} > 4)$$
+```{r}
+1-pf(4 , 8,5)
+
+```
+
+### (c) $$ P(1 < F_{8,5} < 6) $$
+```{r}
+pf(6 , 8,5) - pf(1 , 8,5) 
+
+```
+
+
+### (d) The quantiles
+#### $$ f_{0.025} $$
+```{r}
+qf(0.025 , 8,5) 
+
+```
+#### $$ f_{0.5} $$
+```{r}
+qf(0.5 , 8,5) 
+
+```
+
+#### $$ f_{0.975}$$
+```{r}
+qf(0.975 , 8,5) 
+
+```
+
+#  6. Chi-squared distribution. Compute the following for the chi-squared distribution with 10 degrees of freedom
+
+### (a) $$P(X_{10}^2 < 3)$$
+
+```{r}
+
+pchisq(3,10)
+
+```
+### (b) $$ P(X_{10}^2 > 4) $$
+
+```{r}
+
+pchisq(4, 10, lower.tail = FALSE)
+
+```
+### (c) $$ P(1 < X_{10}^2 < 6)$$
+
+```{r}
+
+pchisq(6,10) - pchisq(1,10) 
+
+```
+
+### (d) The quantiles 
+#### $$ x_{0.025}$$
+```{r}
+
+qchisq(0.025,10) 
+
+```
+#### $$x_{0.5}$$ 
+```{r}
+
+qchisq(0.5,10) 
+
+```
+
+#### $$x_{0.975}$$
+```{r}
+
+qchisq(0.975,10) 
+
+```
+# 7. Purines in microRNAs. Suppose that for certain microRNA of size 20 the probability of a purine is binomially distributed with probability 0.7.
+
+
+
+### (a) What is the probability of 14 purines?
+```{r}
+mrnaSize <- 20 
+purineProb <- 0.7
+
+dbinom(14, size = mrnaSize, prob = purineProb)
+
+
+```
+### (b) What is the probability of less than or equal to 14 purines
+
+```{r}
+
+pbinom(14, size = mrnaSize, prob = purineProb)
+```
+### (c) What is the probability of strictly more than 10 purines?
+
+```{r}
+
+pbinom(10, size = mrnaSize, prob = purineProb, lower.tail = FALSE)
+```
+
+### (d) What is the probability that there are between 10 and 15 purines, inclusive?
+
+
+```{r}
+
+pbinom(15, size = mrnaSize, prob = purineProb) - pbinom(9, size = mrnaSize, prob = purineProb)
+
+```
+
+### (e) How many purines do you expect? In other words: What is the mean of the distribution?
+
+
+```{r}
+
+distributionMean <- mrnaSize*purineProb
+distributionMean
+
+```
+### (f) What is the standard deviation of the distribution?
+
+```{r}
+
+variance <- sqrt(mrnaSize*purineProb*(1-purineProb))
+variance
+
+```
+
+# 8. Zyxin gene expression. The distribution of the expression values of the ALL patients on the Zyxin gene are distributed according to $$N(1.6, 0.4^2)$$
+
+
+### (a) Compute the probability that the expression values are smaller than 1.2.
+
+```{r}
+normMean <- 1.6
+normStd <- 0.4
+
+pnorm(1.2,mean = normMean, sd=0.4)
+
+```
+
+### (b) What is the probability that the expression values are between 1.2 and 2.0?
+
+```{r}
+pnorm(2, mean = normMean, sd = normStd) - pnorm(1.2, mean = normMean, sd = normStd) 
+
+```
+
+### (c) What is the probability that the expression values are between 0.8 and 2.4?
+
+
+```{r}
+pnorm(2.4, mean = normMean, sd = normStd) - pnorm(0.8, mean = normMean, sd = normStd) 
+
+```
+
+
+### (d) Compute the exact values for the quantiles 
+#### $$x_{0.025}$$ 
+
+```{r}
+qnorm(0.025, mean = normMean, sd = normStd)
+
+```
+#### $$x_{0.975}$$
+
+```{r}
+qnorm(0.975, mean = normMean, sd = normStd)
+
+```
+
+
+### (e) Use rnorm to draw a sample of size 1000 from the population and compare the sample mean and standard deviation with that of the population.
+
+
+```{r}
+
+normD <- rnorm(1000, mean = normMean, sd = normStd)
+mean(normD)
+
+sd(normD)
+
+```
+
+# 9. Some computations on the Golub et al. (1999) data.
+
+
+### (a) Take µ = 0 and compute the t-values for the ALL gene expression values. Find the three genes with largest absolute t-values.
+
+```{r}
+
+data(golub, package = "multtest")
+
+golubFactor <- factor(golub.cl,
+                      levels = 0:1,
+                      labels = c("ALL", "AML"))
+
+
+ALLPatientCount <- ncol(golub[, golubFactor == "ALL"])
+
+tValues <-
+  apply(golub[, golubFactor == "ALL"], 1, function(x)
+    sqrt(ALLPatientCount) * (mean(x) - 0) / sd(x))
+
+orderedTValues <- order(tValues, decreasing  = TRUE)
+
+tValues[orderedTValues[1:3]]
+
+golub.gnames[orderedTValues[1:3], 2]
+
+```
+### (b) Compute per gene the ratio of the variances for the ALL over the AML patients. How many are between 0.5 and 1.5?
+```{r}
+data(golub, package = "multtest")
+golubFactor <- factor(golub.cl,
+                      levels = 0:1,
+                      labels = c("ALL", "AML"))
+
+golubALL <- golub[, golubFactor == "ALL"]
+golubAML <- golub[, golubFactor == "AML"]
+
+sdALL <- apply(golubALL, 1, sd)
+sdAML <- apply(golubAML, 1, sd)
+
+sdAMLsdALLRatio <- sdALL / sdAML
+
+sum(sdAMLsdALLRatio >= 0.5 & sdAMLsdALLRatio <= 1.5, na.rm=TRUE)
+```
+
+
 
 
