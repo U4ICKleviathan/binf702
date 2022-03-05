@@ -1,8 +1,10 @@
 ---
 title: "Homework 3"
 author: "Ian Bates"
-date: "2/7/2022"
-output: html_document
+date: "2/21/2022"
+output:
+  word_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -12,7 +14,8 @@ knitr::opts_chunk$set(echo = TRUE)
 # 1. Binomial distribution. Let X be binomially distributed with n = 60 and p = 0.4. Compute the following.
 
 
-#### (a) $$P(X = 24) $$
+### (a)
+#### $$P(X = 24) $$
 ```{r}
 
 dbinom(x=24, size = 60, prob = 0.4)
@@ -25,14 +28,15 @@ pbinom(q=24, size = 60, prob = 0.4)
 
 ```
 
-#### and $$P(X ≥ 30)$$
+#### $$P(X ≥ 30)$$
 
 ```{r}
 
 pbinom(q=29, size=60, prob=0.4, lower.tail = FALSE)
 
 ```
-#### (b) $$P(20 ≤ X ≤ 30)$$
+### (b) 
+#### $$P(20 ≤ X ≤ 30)$$
 ```{r}
 
 sum(dbinom(x=20:30, size = 60, prob = 0.4))
@@ -45,7 +49,8 @@ pbinom(q=19, size=60, prob=0.4, lower.tail = FALSE)
 ```
 
 
-#### (c) $$P(20 ≤ X or X ≥ 40)$$
+### (c) 
+#### $$P(20 ≤ X or X ≥ 40)$$
 
 ```{r}
 
@@ -61,7 +66,7 @@ pbinom(q=19, size=60, prob=0.4, lower.tail = FALSE)
 pbinom(q=9, size=60, prob=0.4, lower.tail = FALSE)
 
 ```
-#### (d) The mean and standard deviation of X.
+### (d) The mean and standard deviation of X.
 
 
 ```{r}
@@ -77,7 +82,7 @@ variance
 ```
 
 
-#### (e) The quantiles:
+### (e) The quantiles:
 #### $$x_{0.025}$$
 
 ```{r}
@@ -105,13 +110,13 @@ qbinom(p = 0.975, size = 60, prob = 0.4)
 pnorm(2.3) - pnorm(1.6)
 
 ```
-### (b) $$P(Z < 1.64)$$
+### b) $$P(Z < 1.64)$$
 ```{r}
 
 pnorm(1.64)
 
 ```
-### (c) $$P(−1.64 < Z < −1.02)$$.
+### c) $$P(−1.64 < Z < −1.02)$$.
 ```{r}
 
 pnorm(-1.02) - pnorm(-1.64)
@@ -131,33 +136,34 @@ pnorm(1.96) - pnorm(-1.96)
 
 ```
 
-### (f) $$ z_{0.025} $$
+### (f) The quantiles
+#### $$ z_{0.025} $$
 ```{r}
 
 qnorm(0.025) 
 
 ```
 
-### $$ z_{0.05} $$
+#### $$ z_{0.05} $$
 ```{r}
 
 qnorm(0.05) 
 
 ```
 
-### $$ z_{0.5} $$
+#### $$ z_{0.5} $$
 ```{r}
 
 qnorm(0.5) 
 
 ```
-### $$ z_{0.95} $$
+#### $$ z_{0.95} $$
 ```{r}
 
 qnorm(0.95) 
 
 ```
-### $$ z_{0.975} $$
+#### $$ z_{0.975} $$
 ```{r}
 
 qnorm(0.975) 
@@ -195,7 +201,7 @@ pnorm(10.5, 10, 2) - pnorm(9, 10, 2)
 
 ### (d) The quantiles
 
-### $$x_{0.025}$$
+#### $$x_{0.025}$$
 
 ```{r}
 
@@ -204,7 +210,7 @@ qnorm(0.025, 10, 2)
 ```
 
 
-### $$x_{0.5}$$
+#### $$x_{0.5}$$
 
 ```{r}
 
@@ -213,7 +219,7 @@ qnorm(0.5, 10, 2)
 ```
 
 
-### $$x_{0.975}$$
+#### $$x_{0.975}$$
 
 ```{r}
 
@@ -261,17 +267,17 @@ pt(-2, 6) - pt(-2,6)
 ```
 
 ### (e) The quantiles 
-### $$t_{0.025}$$
+#### $$t_{0.025}$$
 ```{r}
 qt(0.025, 6)
 ```
 
-### $$t_{0.5}$$
+#### $$t_{0.5}$$
 ```{r}
 qt(0.5, 6)
 ```
 
-### $$t_{0.975}$$
+#### $$t_{0.975}$$
 ```{r}
 qt(0.975, 6)
 ```
@@ -299,18 +305,18 @@ pf(6 , 8,5) - pf(1 , 8,5)
 
 
 ### (d) The quantiles
-### $$ f_{0.025} $$
+#### $$ f_{0.025} $$
 ```{r}
 qf(0.025 , 8,5) 
 
 ```
-### $$ f_{0.5} $$
+#### $$ f_{0.5} $$
 ```{r}
 qf(0.5 , 8,5) 
 
 ```
 
-### $$ f_{0.975}$$
+#### $$ f_{0.975}$$
 ```{r}
 qf(0.975 , 8,5) 
 
@@ -341,20 +347,20 @@ pchisq(6,10) - pchisq(1,10)
 ```
 
 ### (d) The quantiles 
-### $$ x_{0.025}$$
+#### $$ x_{0.025}$$
 ```{r}
 
 qchisq(0.025,10) 
 
 ```
-### $$x_{0.5}$$ 
+#### $$x_{0.5}$$ 
 ```{r}
 
 qchisq(0.5,10) 
 
 ```
 
-### $$x_{0.975}$$
+#### $$x_{0.975}$$
 ```{r}
 
 qchisq(0.975,10) 
@@ -443,13 +449,13 @@ pnorm(2.4, mean = normMean, sd = normStd) - pnorm(0.8, mean = normMean, sd = nor
 
 
 ### (d) Compute the exact values for the quantiles 
-### $$x_{0.025}$$ 
+#### $$x_{0.025}$$ 
 
 ```{r}
 qnorm(0.025, mean = normMean, sd = normStd)
 
 ```
-### $$x_{0.975}$$
+#### $$x_{0.975}$$
 
 ```{r}
 qnorm(0.975, mean = normMean, sd = normStd)
@@ -457,7 +463,7 @@ qnorm(0.975, mean = normMean, sd = normStd)
 ```
 
 
-# (e) Use rnorm to draw a sample of size 1000 from the population and compare the sample mean and standard deviation with that of the population.
+### (e) Use rnorm to draw a sample of size 1000 from the population and compare the sample mean and standard deviation with that of the population.
 
 
 ```{r}
@@ -477,9 +483,11 @@ sd(normD)
 ```{r}
 
 data(golub, package = "multtest")
+
 golubFactor <- factor(golub.cl,
                       levels = 0:1,
                       labels = c("ALL", "AML"))
+
 
 ALLPatientCount <- ncol(golub[, golubFactor == "ALL"])
 
@@ -491,6 +499,7 @@ orderedTValues <- order(tValues, decreasing  = TRUE)
 
 tValues[orderedTValues[1:3]]
 
+golub.gnames[orderedTValues[1:3], 2]
 
 ```
 ### (b) Compute per gene the ratio of the variances for the ALL over the AML patients. How many are between 0.5 and 1.5?
@@ -508,10 +517,9 @@ sdAML <- apply(golubAML, 1, sd)
 
 sdAMLsdALLRatio <- sdALL / sdAML
 
-
-sum(sdAMLsdALLRatio > 0.5 & sdAMLsdALLRatio < 1.5)
-
+sum(sdAMLsdALLRatio >= 0.5 & sdAMLsdALLRatio <= 1.5, na.rm=TRUE)
 ```
+
 
 
 

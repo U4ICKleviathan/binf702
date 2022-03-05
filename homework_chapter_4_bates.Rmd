@@ -1,0 +1,26 @@
+---
+title: "homework_chapter_4_bates"
+author: "Ian Bates"
+date: "2/21/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# 1. CD33 gene. Use grep() to find the index of the important gene CD33 among the list of genes in the golub.gnames table. For each test below formulate the null hypothesis, the alternative hypothesis, the _p_-value, and your conclusion.
+
+```{r}
+
+data(golub, package = "multtest")
+
+
+golub.fac <- factor(golub.cl,
+                      levels = 0:1,
+                      labels = c("ALL", "AML"))
+
+
+
+```
+
+
