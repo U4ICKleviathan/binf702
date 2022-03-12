@@ -1,0 +1,170 @@
+---
+title: "final_project"
+author: "Ian Bates"
+date: "3/7/2022"
+output: html_document
+---
+
+
+https://www.sciencedirect.com/science/article/pii/S0888754320300963?via%3Dihub#f0010
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+
+```
+
+
+```{r}
+```
+
+
+
+```{r}
+## ---- setup, include=FALSE----------------------------------------------------
+knitr::opts_chunk$set(cache = TRUE)
+
+## ----include=TRUE,results="hide",message=FALSE,warning=FALSE------------------
+library(cBioPortalData)
+library(AnVIL)
+
+## -----------------------------------------------------------------------------
+api_errs <- system.file(
+    "extdata", "api", "err_api_info.rda",
+    package = "cBioPortalData", mustWork = TRUE
+)
+load(api_errs)
+
+## -----------------------------------------------------------------------------
+class(err_api_info)
+length(err_api_info)
+lengths(err_api_info)
+
+## -----------------------------------------------------------------------------
+names(err_api_info)
+
+## -----------------------------------------------------------------------------
+err_api_info[['Inconsistent build numbers found']]
+
+## -----------------------------------------------------------------------------
+err_api_info
+
+## -----------------------------------------------------------------------------
+pack_errs <- system.file(
+    "extdata", "pack", "err_pack_info.rda",
+    package = "cBioPortalData", mustWork = TRUE
+)
+load(pack_errs)
+
+## -----------------------------------------------------------------------------
+length(err_pack_info)
+lengths(err_pack_info)
+
+## -----------------------------------------------------------------------------
+names(err_pack_info)
+
+## -----------------------------------------------------------------------------
+err_pack_info
+
+## -----------------------------------------------------------------------------
+sessionInfo()
+
+```
+
+
+
+
+```{r}
+## ---- setup, include=FALSE----------------------------------------------------
+knitr::opts_chunk$set(cache = TRUE)
+
+## ----include=TRUE,results="hide",message=FALSE,warning=FALSE------------------
+library(cBioPortalData)
+library(AnVIL)
+
+## -----------------------------------------------------------------------------
+(cbio <- cBioPortal())
+
+## -----------------------------------------------------------------------------
+tags(cbio)
+head(tags(cbio)$operation)
+
+## -----------------------------------------------------------------------------
+searchOps(cbio, "clinical")
+
+## -----------------------------------------------------------------------------
+getStudies(cbio)
+
+## -----------------------------------------------------------------------------
+clinicalData(cbio, "acc_tcga")
+
+## -----------------------------------------------------------------------------
+mols <- molecularProfiles(cbio, "acc_tcga")
+mols[["molecularProfileId"]]
+
+## -----------------------------------------------------------------------------
+molecularData(cbio, molecularProfileId = "acc_tcga_rna_seq_v2_mrna",
+    entrezGeneIds = c(1, 2),
+    sampleIds = c("TCGA-OR-A5J1-01",  "TCGA-OR-A5J2-01")
+)
+
+## -----------------------------------------------------------------------------
+geneTable(cbio)
+
+## -----------------------------------------------------------------------------
+genePanels(cbio)
+getGenePanel(cbio, "IMPACT341")
+
+## -----------------------------------------------------------------------------
+gprppa <- genePanelMolecular(cbio,
+    molecularProfileId = "acc_tcga_rppa",
+    sampleListId = "acc_tcga_all")
+gprppa
+
+## -----------------------------------------------------------------------------
+getGenePanelMolecular(cbio,
+    molecularProfileIds = c("acc_tcga_rppa", "acc_tcga_gistic"),
+    sampleIds = allSamples(cbio, "acc_tcga")$sampleId
+)
+
+## -----------------------------------------------------------------------------
+getDataByGenePanel(cbio, "acc_tcga", genePanelId = "IMPACT341",
+    molecularProfileId = "acc_tcga_rppa", sampleListId = "acc_tcga_rppa")
+
+## -----------------------------------------------------------------------------
+sampleLists(cbio, "acc_tcga")
+
+## -----------------------------------------------------------------------------
+samplesInSampleLists(cbio, "acc_tcga_cna")
+
+## -----------------------------------------------------------------------------
+samplesInSampleLists(cbio, c("acc_tcga_cna", "acc_tcga_cnaseq"))
+
+## -----------------------------------------------------------------------------
+allSamples(cbio, "acc_tcga")
+
+## -----------------------------------------------------------------------------
+getSampleInfo(cbio, studyId = "acc_tcga",
+    sampleListIds = c("acc_tcga_rppa", "acc_tcga_gistic"))
+
+## -----------------------------------------------------------------------------
+cbio$getGeneUsingGET
+
+## -----------------------------------------------------------------------------
+(resp <- cbio$getGeneUsingGET("BRCA1"))
+
+## -----------------------------------------------------------------------------
+httr::content(resp)
+
+## ----eval=FALSE---------------------------------------------------------------
+#  unlink("~/.cache/cBioPortalData/")
+
+## -----------------------------------------------------------------------------
+sessionInfo()
+
+
+
+
+```
+

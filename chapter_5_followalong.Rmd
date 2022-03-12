@@ -1,0 +1,121 @@
+---
+title: "chapter_5_followalong"
+author: "Ian Bates"
+date: "3/6/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+data(golub, package = "multtest")
+
+?residuals
+
+
+zyxin = grep("Zyxin",golub.gnames[,2], ignore.case = TRUE)
+cmyb = grep("c-myb",golub.gnames[,2], ignore.case = TRUE)
+x <- golub[zyxin,]
+y <- golub[cmyb,]
+leastSquares = lm(y ~ x) # linear model with least squares regression with an intercept
+plot(x,
+y,
+pch=19, # plot solid circles
+cex.lab=1.5, # make axis labels big
+col="blue",
+xlab="Relative Zyxin gene expression",
+ylab="Relative c-MYB gene expression")
+predicted <- predict(leastSquares) # get the predicted values
+for (i in 1:length(predicted)) { # add the residuals
+segments(x[i],predicted[i], x[i],y[i], lwd=2, lty=2, col="green")
+}
+abline(leastSquares$coef, lwd=3, lty=2, col="red") # add regression lin
+
+
+
+summary(leastSquares)
+```
+
+
+
+```{r}
+y <- c(2, 3, 1, 2, 8, 7, 9, 8, 11, 12, 13, 12)
+
+factor <- gl(3, 4)
+
+model.matrix(y ~ factor + 0)
+model.matrix(y ~ factor - 1)
+
+
+
+```
+
+
+
+```{r}
+summary(lm(y ~ factor -1))
+```
+
+
+```{r}
+anova(lm(y ~ factor ))
+```
+
+```{r}
+summary(lm(y ~ factor ))
+
+```
+
+```{r}
+library(ALL); data(ALL)
+samplesB1toB3 <- ALL$BT %in% c("B1","B2","B3")
+x <- as.numeric(exprs(ALL)[row.names(exprs(ALL))=="1866_g_at",samplesB1toB3])
+factor <- factor(ALL$BT[samplesB1toB3],labels=c("B1","B2","B3"))
+
+stripchart(x ~ factor,
+ cex.lab=1.5, # make axis labels big
+ vertical = TRUE, # boxplots vertical
+ col=c("red", "darkgreen", "blue"),
+ xlab="B-cell ALL stage",
+ ylab="SKI-like oncogene expression")
+```
+
+```{r}
+library(ALL);data(ALL)
+ALLB123 <- ALL[,ALL$BT %in% c("B1","B2","B3")]
+y <- exprs(ALLB123)["1866_g_at",]
+summary(lm(y ~ ALLB123$BT ))
+
+
+
+```
+
+```{r}
+
+samplesB1toB3 <- ALL$BT %in% c("B1","B2","B3")
+x <- as.numeric(exprs(ALL)[row.names(exprs(ALL))=="1242_at",samplesB1toB3])
+factor <- factor(ALL$BT[samplesB1toB3],labels=c("B1","B2","B3"))
+stripchart(x ~ factor,
+method="jitter", # add random horizontal jitter
+cex.lab=1.5, # make axis labels big
+vertical = TRUE, # boxplots vertical
+col=c("red", "darkgreen", "blue"),
+xlab="B-cell ALL stage",
+ylab="Ets2 expression")
+
+
+
+```
+```{r}
+
+library(ALL); data(ALL)
+ALLB123 <- ALL[,ALL$BT %in% c("B1","B2","B3")]
+y <- exprs(ALLB123)["1242_at",]
+summary(lm(y ~ ALLB123$BT))
+
+
+
+```
+
