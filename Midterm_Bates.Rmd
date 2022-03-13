@@ -218,17 +218,19 @@ wilcox.test(allergics, nonallergics)
 
 
 
-## Problem 7 (10 pts) In a well-known genetics article (Yule, G. U. (1923). The progeny, in generations F 12 to F 17 of a cross between a yellow-wrinkled and a green-round seeded pea; a report on data afforded by experiments initiated by the late AD Darbishire, MA, in 1905, and conducted by him until his death in 1915. Journal of Genetics, 13(3), 255-331) the early statistician G. U. Yule analyzed data from crossing garden peas. The dominant alleles were Y = yellow color and R = round shape resulting in a double dominant YR.Yule examined 269 4 seed pods resulting from a dihybrid cross and counted the number of YR seeds in each pod. Letting X represent the number of seeds in a randomly selected pod with possible X values of 0, 1, 2, 3, and 4 which are identified with cells 1, 2, 3, 4, 5 of a 1 x 5 table. So a pod with X = 4 would have its count values in the 5th entry of the table.The hypothesis that the Mendelian laws are operative and that genetypes of individual seeds within a pod are independent of one another implies that X has a binomial distribution with n=4 and p=9/16. The null hypothesis is that the Medelian laws hold true and the alternative hypothesis is that they do not. The entry in the table (the observed seed counts) reading from the first to the fifth are {16,45,100,82,26}.The probabilities under Ho are given by the values of the binomial distribution with n=4 and p=9/16 as the number of seeds i obtains values in the set {0,1,2,3,4}. Notice that the observed seed count for the 0th case is 16, the 1 case 45, etc. Use the R function chisq.test to test H0. [Hint - You will have to setup a vector of the observed values and a vector of the expected probabilities. Use the values as detailed above.] Do we reject the null hypothesis at the α level of .1?
+## Problem 7 (10 pts) In a well-known genetics article (Yule, G. U. (1923). The progeny, in generations F 12 to F 17 of a cross between a yellow-wrinkled and a green-round seeded pea; a report on data afforded by experiments initiated by the late AD Darbishire, MA, in 1905, and conducted by him until his death in 1915. Journal of Genetics, 13(3), 255-331) the early statistician G. U. Yule analyzed data from crossing garden peas. The dominant alleles were Y = yellow color and R = round shape resulting in a double dominant YR. Yule examined 269 4 seed pods resulting from a dihybrid cross and counted the number of YR seeds in each pod. Letting X represent the number of seeds in a randomly selected pod with possible X values of 0, 1, 2, 3, and 4 which are identified with cells 1, 2, 3, 4, 5 of a 1 x 5 table. So a pod with X = 4 would have its count values in the 5th entry of the table.The hypothesis that the Mendelian laws are operative and that genetypes of individual seeds within a pod are independent of one another implies that X has a binomial distribution with n=4 and p=9/16. The null hypothesis is that the Medelian laws hold true and the alternative hypothesis is that they do not. The entry in the table (the observed seed counts) reading from the first to the fifth are {16,45,100,82,26}.The probabilities under Ho are given by the values of the binomial distribution with n=4 and p=9/16 as the number of seeds i obtains values in the set {0,1,2,3,4}. Notice that the observed seed count for the 0th case is 16, the 1 case 45, etc. Use the R function chisq.test to test H0. [Hint - You will have to setup a vector of the observed values and a vector of the expected probabilities. Use the values as detailed above.] Do we reject the null hypothesis at the α level of 0.1?
 
 ```{r}
 p7.n <- 4
 p7.p <- 9 / 16
+p7.size <- 269
+
 
 p7.observed <- c(16, 45, 100, 82, 26)
-p7.vec2 <- c(0, 1, 2, 3, 4)
+p7.x <- c(0,1,2,3,4)
+p7.expected.freq <- sapply(p7.x, function(x) dbinom(x,size = p7.n, prob = p7.p ))
 
-
-
+p7.chi_result <- chisq.test(p7.observed, p=p7.expected.freq)
 
 ```
 
