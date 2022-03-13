@@ -48,6 +48,8 @@ https://cbioportal.github.io/2020-cbioportal-r-workshop/
 https://cbioportal.github.io/2020-cbioportal-r-workshop/Webinar_Example1.pdf
 
 
+https://cbioportal.github.io/2020-cbioportal-r-workshop/Example2.pdf
+
 sudy json:
 {
     "name": "Prostate Adenocarcinoma (TCGA, PanCancer Atlas)",
@@ -78,7 +80,8 @@ study.json$studyId
 cbio <- cBioPortal()
 
 cbio
-class(cbio)
+
+
 cBioCache()
 
 setCache(
@@ -97,16 +100,78 @@ study.all_data <- cBioDataPack(
 ```
 
 
+```{r, label='cBioPortal-playground'}
 
-
-```{r}
 show(study.all_data)
+length(study.all_data)
+names(study.all_data)
+ct <- dimnames(study.all_data)
+
 colData(study.all_data)
 sampleMap(study.all_data)
 metadata(study.all_data)
 summary(complete.cases(study.all_data))
 colnames(study.all_data)
 experiments(study.all_data)
+
+subset_experiment <- study.all_data[, , c('cna', 'log2_cna')]
+class(subset_experiment)
+experiments(subset_experiment)
+
+
+?upsetSamples
+upsetSamples(study.all_data )
+upsetSamples(subset_experiment)
+
+
+```
+
+
+```{r, label="extract-assay-sample"}
+sample_map_df <- sampleMap(study.all_data["cna"])
+t <- sample_map_df$colname
+primary_id <- sample_map_df@listData[["primary"]]
+length(t)
+length(primary_id)
+u_p <
+u_t <- unique(t)
+length(u_t )
+
+class(sample_map_df)
+
+
+head(sample_map_df)
+
+
+experiments(study.all_data)
+
+```
+
+
+
+```{r, label='combine-assays'}
+# getWithColData:  https://rdrr.io/bioc/MultiAssayExperiment/f/vignettes/MultiAssayExperiment.Rmd 
+(cna_data <- getWithColData(study.all_data,'cna' ))
+cna_data
+class(cna_data)
+
+
+cna_log2_data <- getWithColData(study.all_data, 'log2_cna')
+cna_log2_data
+
+
+combined <- rbind(cna_data, cna_log2_data)
+combined
+
+```
+
+```{r, label='subsetting-summary-assays'}
+
+```
+
+
+
+```{r}
 
 
 all_clinical_data = clinicalData(cbio, studyId = study.json$studyId)
@@ -144,6 +209,8 @@ combined <- rbind(cna_data, cna_log2_data)
 combined
 browseVignettes("SummarizedExperiment")
 
+
+
 ?getWithColData
 # https://www.bioconductor.org/help/course-materials/2019/BSS2019/04_Practical_CoreApproachesInBioconductor.html
 colData(cna_data)
@@ -162,7 +229,7 @@ cna['UBE2Q2P2',1]
 cna_log2['UBE2Q2P2',1]
 
 ```
-```{r}
+```{r, label='compare-cbioportal-vs-published-data'}
 published_data <- read.csv('C:/Users/ianch/GeorgeMason/binf702/r_code/binf702/finalProject/data_curated_trans.csv')
 p_data <- data.frame(published_data[,-1], row.names = published_data[,1])
 
