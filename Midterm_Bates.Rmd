@@ -9,6 +9,7 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.align = "center")
 library(reticulate)
 use_python('C:/dev/python/python.exe')
 ```
@@ -548,6 +549,40 @@ summary(iris)
 
 
 ### (b)(5pts) Create a 2 x 2 matrix of box plots of the Fisher iris data with the sepal width and sepal length in the first row and the petal width and petal length in the second row. Make sure that the boxplots are conditioned by species.
+```{r}
+
+par(mfrow=c(2,2))
+
+boxplot(iris$Sepal.Width ~ iris$Species, # values
+           main= "Iris Sepal Width",
+           xlab="Species",
+           ylab="Sepal Width",
+           col=c("purple","green", "blue")
+)
+
+boxplot(iris$Sepal.Length ~ iris$Species, # values
+           main= "Iris Sepal Length",
+           xlab="Species",
+           ylab="Sepal Length",
+           col=c("purple","green", "blue")
+)
+
+boxplot(iris$Petal.Width ~ iris$Species, # values
+           main= "Iris Petal Width",
+           xlab="Species",
+           ylab="Petal Width",
+           col=c("purple","green", "blue")
+)
+
+boxplot(iris$Petal.Length ~ iris$Species, # values
+           main= "Iris Petal Length",
+           xlab="Species",
+           ylab="Petal Length",
+           col=c("purple","green", "blue")
+)
+
+
+```
 
 
 
