@@ -133,12 +133,12 @@ plot(
   lwd = 4,
   xlab = "x",
   ylab = "Binomial cumulative distribution function F(x)",
-  main = NULL,
-  cex.lab = 1.5
-)
+  main = NULL
+  )
 
 ```
->When we're assessing the anomalous significance of `r p3.event` people dying in a population, we are going to assess $$Pr(X>=`r p3.event`|X~binom(`r p3.n`, `r p3.p`)) or the right tailed test
+
+>When we're assessing the anomalous significance of `r p3.event` people dying in a population, we are going to assess the right tailed test $$Pr(X>=`r p3.event`|X~binom(`r p3.n`, `r p3.p`))$$
 
 >And because $$pbinom(x, ... , lower.tail = FALSE)$$ computes values for values strictly greater than x, we will have to subtract 1 from our event number `r p3.event`.
 
@@ -146,7 +146,7 @@ plot(
 pbinom(p3.event - 1, size = p3.n, prob = p3.p, lower.tail = FALSE)
 
 ```
-> All semester, we have been utilizing $$p < 0.05$$ as an indicator for statistical significance, I would say that a value of $$`r pbinom(p3.event - 1, size = p3.n, prob = p3.p, lower.tail = FALSE)`$$ not sufficient to warent any concern.
+> All semester, we have been utilizing p < 0.05 as an indicator for statistical significance, I would say that a p value of `r pbinom(p3.event - 1, size = p3.n, prob = p3.p, lower.tail = FALSE)` not sufficient to warent any concern.
 
 ### (b)(2pts) Suppose 10 men had died. Should we be concerned?
 
@@ -158,6 +158,7 @@ pbinom(p3.new_event-1, size = p3.n, prob = p3.p, lower.tail = FALSE)
 
 
 ```
+
 >Now for this instance where 10 people die, significance of $$Pr(X>=`r p3.new_event`|X~binom(`r p3.n`, `r p3.p`)) gives us a tremendously small percentage $$`r pbinom(p3.new_event-1, size = p3.n, prob = p3.p, lower.tail = FALSE)`$$ which is a cause for concern.
 
 
@@ -185,14 +186,13 @@ p4.binomTest <- binom.test(x=p4.incident, n = p4.sample, p=p4.rate, alternative 
 
 p4.binomTest$p.value
 ```
->With a p value of $$`r p4.binomTest$p.value`$$, we fail to reject the null hypothesis.  This error is a type 2 error.
+
+>With a p value of `r p4.binomTest$p.value`, we fail to reject the null hypothesis.  This error is a type 2 error.
 
 
 ### (b)(2pts) What P-value is associated with this test. Based on this P-value could H_0 be rejected at a significance level of .2
 
-> Yes, we would reject the null hypothesis if we we have a significance value of 0.2 as $$`r p4.binomTest$p.val` < 0.2$$
-
-
+> Yes, we would reject the null hypothesis if we we have a significance value of 0.2 as `r p4.binomTest$p.val` < 0.2
 
 
 
@@ -234,8 +234,9 @@ p5.t<-t.test(pipe, brush, paired=TRUE)
 p5.t
 
 ```
-> If we look at the p value for the paired T-Test, we will see that $$`r p5.t$p.val`
-< 0.05$$, which means that we can reject the null hypothesis of equal means
+
+> If we look at the p value for the paired T-Test, we will see that `r p5.t$p.val`
+< 0.05, which means that we can reject the null hypothesis of equal means
 
 
 
@@ -249,7 +250,7 @@ p5.var
 
 ```
 
->Since the F test for equal variances shows us that we cannon reject the null hypothesis of equal variances, becuase $$`r p5.var$p.value` > 0.05$$, we will utilize the t.test with var=TRUE.
+>Since the F test for equal variances shows us that we cannon reject the null hypothesis of equal variances, becuase `r p5.var$p.value` > 0.05, we will utilize the t.test with var=TRUE.
 
 
 ```{r}
@@ -284,10 +285,8 @@ shapiro.test(p6.nonallergics)
 p6.w <- wilcox.test(p6.allergics, p6.nonallergics)
 p6.w
 ```
-> With a p value of $$`r p6.w$p.val`$$, we would reject the null hypothesis
 
-
-
+> With a p value of `r p6.w$p.val`, we would reject the null hypothesis
 
 
 ## Problem 7 (10 pts) In a well-known genetics article (Yule, G. U. (1923). The progeny, in generations F 12 to F 17 of a cross between a yellow-wrinkled and a green-round seeded pea; a report on data afforded by experiments initiated by the late AD Darbishire, MA, in 1905, and conducted by him until his death in 1915. Journal of Genetics, 13(3), 255-331) the early statistician G. U. Yule analyzed data from crossing garden peas. The dominant alleles were Y = yellow color and R = round shape resulting in a double dominant YR. Yule examined 269 4 seed pods resulting from a dihybrid cross and counted the number of YR seeds in each pod. Letting X represent the number of seeds in a randomly selected pod with possible X values of 0, 1, 2, 3, and 4 which are identified with cells 1, 2, 3, 4, 5 of a 1 x 5 table. So a pod with X = 4 would have its count values in the 5th entry of the table.The hypothesis that the Mendelian laws are operative and that genetypes of individual seeds within a pod are independent of one another implies that X has a binomial distribution with n=4 and p=9/16. The null hypothesis is that the Medelian laws hold true and the alternative hypothesis is that they do not. The entry in the table (the observed seed counts) reading from the first to the fifth are {16,45,100,82,26}.The probabilities under Ho are given by the values of the binomial distribution with n=4 and p=9/16 as the number of seeds i obtains values in the set {0,1,2,3,4}. Notice that the observed seed count for the 0th case is 16, the 1 case 45, etc. Use the R function chisq.test to test H0. [Hint - You will have to setup a vector of the observed values and a vector of the expected probabilities. Use the values as detailed above.] Do we reject the null hypothesis at the α level of 0.1?
@@ -306,7 +305,8 @@ p7.chi_result <- chisq.test(p7.observed, p=p7.expected.freq)
 p7.chi_result
 
 ```
->No, we would not reject the null hypothesis as $$`r p7.chi_result$p.val`>0.1$$
+
+>No, we would not reject the null hypothesis as `r p7.chi_result$p.val`>0.1
 
 
 ## Problem 8 A Number of studies have shown lichens (certain plants composed of an algae and a fungus) to be excellant bioindicators of air pollution. The article Bruteig, I. E. (1993). The epiphytic lichen Hypogymnia physodes as a biomonitor of atmospheric nitrogen and sulphur deposition in Norway. Environmental monitoring and assessment, 26(1), 27-47. gives the following data (read from a graph) on x=NO; wt deposition (g N/m^2) and y = lichen N (%dry weight)
@@ -370,11 +370,11 @@ predict(p8.ls, newdata = data.frame(NO=c(0.5)))
 
 ### (c)(2pts) Does the model seem to be statistically significant based on the F statistic?
 
-> Yes. Based on the p value from the F statistic $$0.0002581 < 0.05$$
+> Yes. Based on the p value from the F statistic 0.0002581 < 0.05
 
 ### (d)(2pts) What percentage of the variation of y is explained by the variation in x? [Hint - Do not use the adjusted R-squared.]
 
-> About $$0.7175$$ of the variance is explained by the regression.
+> About 0.7175 of the variance is explained by the regression.
 
 ## Problem 9 An article Annest, J. L., Pirkle, J. L., Makuc, D., Neese, J. W., Bayse, D. D., & Kovar, M. G. (1983). Chronological trend in blood lead levels between 1976 and 1980.New England Journal of Medicine, 308(23), 1373-1377 gives the following data on y = average blood lead level of white children age 6 months to 5 years and x = amount of lead used in gasoline production (in 1000 tons) for ten 6-month periods.
 
@@ -454,7 +454,8 @@ p9.cor <- cor.test(p9.x, p9.y)
 
 p9.cor
 ```
-> With the p value $$`r p9.cor$p.val`< 0.5$$, we can say that there is a linear relationship between blood lead level and the amount of lead used in gasoline production.
+
+> With the p value `r p9.cor$p.val`< 0.5, we can say that there is a linear relationship between blood lead level and the amount of lead used in gasoline production.
 
 
 ## Problem 10 Suppose that systolic blood pressure, birth weight (oz) and age (days) are measure for a number of infants. Suppose that the data values ae given by 
