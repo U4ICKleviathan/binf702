@@ -1,0 +1,24 @@
+---
+title: "Project Proposal - Bioinformatics analysis of the genes involved in the extension of prostate cancer to adjacent lymph nodes by supervised and unsupervised machine learning methods: The role of SPAG1 and PLEKHF2"
+author: "Ian Bates"
+date: "3/21/2022"
+output:
+  word_document: default
+mainfont: Times New Roman
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+remotes::install_github("paleolimbot/rbbt")
+
+```
+
+## Background and Objectives
+
+Throughout our this semester, we have have demonstrated many statistical methods and tools to help derive meaning from data.  We have leveraged the GOLUB dataset, which is a well currated dataset containing the gene expression levels of 3,051 across 31 labeled patients
+
+## Computational Methods
+
+## Discussion
+
+## References

@@ -97,6 +97,9 @@ study.all_data <- cBioDataPack(
     cleanup = TRUE,
     ask = TRUE
 )
+study.all_data
+class(study.all_data)
+metadata(study.all_data)
 ```
 
 

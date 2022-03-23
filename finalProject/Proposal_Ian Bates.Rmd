@@ -1,0 +1,96 @@
+---
+title: "Project Proposal"
+author: "Ian Bates"
+date: "3/21/2022"
+output:
+  word_document: default
+mainfont: Times New Roman
+
+csl: cell-numeric_no_access.csl
+bibliography: bibliography.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# https://gsverhoeven.github.io/post/zotero-rmarkdown-csl/
+
+```
+
+## Background and Objectives
+
+  Throughout this semester, we have have demonstrated many statistical methods and tools to help derive meaning from data.  We have leveraged the GOLUB data set @golubMolecularClassificationCancer1999, which is a well curated data set containing the gene expression levels of 3,051 across 31 different patients. We have invested significant time and effort to draw meaning from our gene expression data by exploring the data visually, identifying genes that are expressed differently between the 2 different patient groups, and performing various statistical tests. I will utilize these methods as well as additional classification methods we will cover in the remaining time in this semester to identify genes that are likely markers for a different severe outcome from a common and potentially fatal cancer.
+  
+  Prostate cancer is incredibly common in the United States. Outside of skin cancer, this cancer is the most frequently diagnosed cancer in the United States  @blackwelderProstateCancerScreening2019.  It is also the third leading cause of caner related deaths @blackwelderProstateCancerScreening2019. It has been estimated that about 9% of prostate cancers can be attributed to heredity @hemminkiFamilialRiskFamilial2012, which implies that absence of familial history of prostate cancer does not negate the need for sufficient testing.
+  
+  The screening for prostate cancer traditionally involved digital rectal exams; but recently there has been a test used, Prostate-Specific Antigen (PSA) @ProstateSpecificAntigen, which involves sampling for an antigen found in prostatic tissue.  This test has significant drawbacks due to a sensitivity of 20.5% and specificity of 93.8% for histologically positive prostate specimens @barryEvaluatingElevatedScreening2015. PSA testing has a high false positives rates due to other factors such as prostatitis, ejaculation, trauma, and recent instrumentation. And these false positives can initiate treatments which can cause significant harm to healthy sexual function as well as continence.
+  
+  The goal of this study is to identify candidate genes that can serve as markers for future development of metastatic prostate cancers.  The benefits identifying these genes is that we will be able to develop testing protocols that can identify the likely severity of their prostate cancer expression so that extreme treatments, such as prostatectomy and external beam radiation therapy can be avoided.
+  
+## Computational Methods
+
+  The paper I will be following through this project @shamsaraBioinformaticsAnalysisGenes2020 leverages a TCGA Dataset of Prostate Adenocarcinoma using cBioPortal @ceramiCBioCancerGenomics2012 and review the RNA expression values. Ultimately, we will be trying to classify a gene expression assay of a patient into 1 of 2 categiries: N0 group (patients with PCa without the involvement of any lymph nodes) or N1 (patients with PCa with the involvement of lymph nodes).
+  
+```{r, include=FALSE}
+library(cBioPortalData)
+library(AnVIL)
+library(MultiAssayExperiment)
+library(GenomicRanges)
+library(SummarizedExperiment)
+library(RaggedExperiment)
+library(jsonlite)
+library(survival)
+library(survminer)
+library(curatedTCGAData)
+library(TCGAutils)
+library(SingleCellMultiModal)
+library(UpSetR)
+library(GenomicDataCommons)
+library(rjson)
+study.json <- fromJSON(file='study_info.json')
+
+
+```
+```{r, message=FALSE, warning=FALSE}
+cbio <- cBioPortal()
+```
+
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+cBioCache()
+
+setCache(
+    directory = tools::R_user_dir("cBioPortalData", "cache"),
+    verbose = TRUE,
+    ask = interactive()
+)
+
+```
+```{r, message=FALSE, warning=FALSE}
+study.all_data <- cBioDataPack(
+    study.json$studyId,
+    names.field = c("Hugo_Symbol", "Entrez_Gene_Id", "Gene"),
+    cleanup = TRUE,
+    ask = TRUE
+)
+metadata(study.all_data)
+
+
+```
+
+
+The process will begin by cleaning the data to remove data where all expression values are zero. Then, we will use the ANOVA F values for the differential expression values of genes between N1 and N0 as a test for variable selection. 
+
+From here, we will progress into the Machine Learning modeling.  We will utilize Principle Component Analysis as our method for dimensional reduction.
+
+Following this, we will use K-means and hierarchical clustering methods to analyse the differential pattern of gene expressions between the 2 groups.
+
+After this, we will utilize Neural Network and Naïve Bayesian classification as supervised classification.
+
+And once we have the produced the models, we will asses the models through calculating the accuracy, sensitivity, specificity, and the precision of our models.
+
+
+## Discussion
+
+  The ability to perform genetic test to identify potential malignant expressions of prostate cancer holds the promise as a new screening method for one of the most common cancers in the United States. While the results of this analysis will better help those who are facing prostate cancers, we can extent this type of analysis to many other cancer types.  It is rare for a disease to be monogenic, but with the increasing availability of well curated genomic data for many cancer studies, the open access to this information, and the growing interest in bioinformatics we have the potential to discover novel relationships between differential cancer outcomes.
+
+
+## References
