@@ -1,0 +1,312 @@
+---
+title: "chapter_5_asbur_bates"
+author: "Ian Bates"
+date: "3/5/2022"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r, echo=FALSE, eval=TRUE, include=FALSE}
+library(ALL)
+data(ALL)
+library(lmtest)
+
+
+```
+```{r include=FALSE}
+
+
+# FROM https://bioconductor.org/packages/release/data/experiment/vignettes/ALL/inst/doc/ALLintro.R
+library(ALL); data(ALL)
+show(ALL)
+print(summary(pData(ALL)))
+
+
+hist(cvv <- apply(exprs(ALL),1,function(x)sd(x)/mean(x)))
+??expres
+
+```
+
+
+## 1. Analysis of gene expressions of B-cell ALL patients. 
+
+### (a) Construct a data.frame containing the expression values for the B-cell ALL patients in stage B, B1, B2, B3, and B4 from the ALL data.
+
+```{r}
+library(ALL); data(ALL)
+ALLB1234 <- ALL[,ALL$BT %in% c("B","B1","B2","B3","B4")]
+all.frame <- exprs(ALLB1234)
+test_frame <- as.data.frame(all.frame)
+```
+
+
+### (b) How many patients are in each group?
+```{r}
+table(ALLB1234$BT)
+
+```
+
+
+### (c) Test the normality of the residuals from the linear model used for the analysis of variance for all gene expression values. Collect the p-values in a vector. 
+
+```{r include=FALSE}
+
+?shapiro.test
+?exprs
+?residuals
+
+```
+
+
+```{r include=FALSE}
+ALLB123 <- ALL[,ALL$BT %in% c("B1","B2","B3")]
+y <- exprs(ALLB123)["1866_g_at",]
+t <- bptest(lm(y ~ ALLB123$BT),studentize = FALSE)
+summary(t)
+?bptest
+
+```
+
+
+
+```{r}
+
+hw.normal.p <-apply(exprs(ALLB1234), 1, function(x) shapiro.test(residuals(lm(x~ ALLB1234$BT)))$p.value)
+    
+```
+
+
+
+### (d) Do the same for the homoscedasticity assumption.
+
+```{r}
+hw.h.p <- apply(exprs(ALLB1234), 1,function(x) bptest(lm(x~ALLB1234$BT), studentize = FALSE)$p.value)
+
+
+```
+
+
+
+
+### (e) How many gene expressions are normally distributed and how many are homoscedastic? How many are both normally distributed and homoscedastic? 
+
+```{r}
+paste('Normally Distributed:', sum(hw.normal.p > 0.05))
+paste("Homoscedastic Count:", sum(hw.h.p > 0.05))
+
+total <- cbind(hw.normal.p, hw.h.p)
+
+paste("Both Normally Distributed and Homoscedastic:",sum(hw.normal.p >0.05 & hw.h.p > 0.05))
+
+
+
+```
+
+
+## 2. Further analysis of gene expressions of B-cell ALL patients. Continue with the previous data.frame containing the expression values for the B-cell ALL patients in stage B, B1, B2, B3, and B4 from the ALL data. 
+
+
+### (a) Collect the overall p-values from ANOVA in a vector.
+
+```{r}
+
+hw.anova.p <- apply(exprs(ALLB1234), 1, function(x) anova(lm(x~ALLB1234$BT))$Pr[1])
+
+sum(hw.anova.p > 0.05)
+
+```
+
+
+
+### (b) Use featureNames() to report the affymetrix IDs of the genes with smaller p-values than 0.000001. 
+```{r}
+?featureNames
+
+min_p <-  0.000001
+
+featureNames(ALLB1234)[hw.anova.p < min_p]
+
+
+
+```
+
+
+### (c) Collect the overall p-values from the Kruskal-Wallis test in a vector.
+```{r}
+hw.kw.p <- apply(exprs(ALLB1234), 1, function(x) kruskal.test(x ~ALLB1234$BT)$p.value)
+
+
+```
+
+
+### (d) Use featureNames() to report the affymetrix IDs of the genes with smaller p-values than 0.000001. 
+
+```{r}
+min_p <- 0.000001
+featureNames(ALLB1234)[hw.kw.p < min_p]
+```
+
+
+### (e) Briefly comment on the differences you observe. That is, how many genes have p-values smaller than 0.001 for both ANOVA and Kruskal-Wallis? How many have p-values smaller than 0.001 for only one test? Hint: Collect TRUE/FALSES in logical vectors and use the table() function.
+
+```{r}
+min_p <- 0.001
+
+hw.anova.p.logical <-hw.anova.p < min_p
+table(hw.anova.p.logical)
+
+hw.kw.p.logical <- hw.kw.p < min_p
+
+table(hw.kw.p.logical)
+
+table(hw.anova.p.logical, hw.kw.p.logical)
+
+
+
+```
+
+
+> The test using ANOVA identifies more genes which reject the null hypothesis of equal means than the Kruskal-Wallis test. When we combine the results of the 2 different tests, we see that many of the gene expressions which force us to reject the null are both captured by both the ANOVA method and Kruskal-Wallis
+
+
+## 3. Finding the ten best genes for identifying B-cell ALL patients. Continue with the previous data.frame containing the expression values for the B-cell ALL patients in stage B, B1, B2, B3, and B4 from the ALL data. 
+
+
+### (a) Print the p-values and the corresponding (affymetrix) gene identifiers of the ten best candidate genes (biomarkers) for differential expression using ANOVA.
+```{r}
+
+orderedAnova <- order(hw.anova.p, decreasing=F)
+
+hw.anova.candidates <- featureNames(ALLB1234)[orderedAnova[1:10]]
+
+hw.anova.p[orderedAnova[1:10]]
+
+
+```
+
+
+
+
+### (b) Do the same for the p-values from the Kruskal-Wallis test.
+
+```{r}
+orderedKW <- order(hw.kw.p, decreasing=F)
+
+hw.kw.candidates <- featureNames(ALLB1234)[orderedKW[1:10]]
+
+hw.kw.p[orderedKW[1:10]]
+
+
+```
+
+
+### (c) Use the function intersect() to find identifiers in both sets.
+
+```{r}
+
+?intersect
+intersect(hw.anova.p[orderedAnova[1:10]], hw.kw.p[orderedKW[1:10]])
+intersect(hw.anova.candidates, hw.kw.candidates)
+
+```
+
+
+
+
+## 4. A simulation study on gene expression values.
+
+
+### (a) Construct a data matrix with 10000 rows (genes) and 9 columns (patients) with data sampled from the normal distribution with mean zero and variance equal to one. Such a matrix simulates gene expressions without differences between groups (sometimes called negatives). 
+
+```{r}
+
+rand_row <- 10000
+rand_col <- 9
+
+randGene <-
+  matrix(rnorm(
+    n = rand_row * rand_col,
+    mean = 0,
+    sd = 1
+  ),
+  nrow = rand_row,
+  ncol = rand_col)
+
+
+```
+
+### (b) Construct a factor for three groups each with three values.
+
+```{r}
+factorGroups <- gl(3,3)
+
+```
+
+
+
+### (c) Assume that the data from (a) represents the gene expression levels for 10,000 genes for 3 groups of patients with 3 patients in each group. Use one-way ANOVA to test the equality of means for each gene across the 3 groups of patients. In the test for equality of means betweens groups 1 and 3, how many p-values are smaller than the significance level α = 0.05? 
+
+```{r}
+randGene.anova <-
+  apply(randGene, 1, function(x)
+    anova(lm(x ~ factorGroups))$Pr[1])
+
+min_sig <- 0.05
+
+sum(randGene.anova < min_sig)
+
+
+
+```
+
+
+
+### (d) If the p-value is smaller than the significance level, then the conclusion is that there is an experimental effect (a positive). How many false positives do you expect by chance and how many did you observe?
+
+>Given that we have generlaly used the p-value of `r min_sig` as the value that indicates whether or not we would indicate significance, we would expect in this set of `r rand_row` rows to have a false experimental effects of `r rand_row` * `r min_sig` = `r rand_row * min_sig`.  In this set, we see a total number of records that are below `r min_sig` to be `r sum(randGene.anova < min_sig)`, so pretty close to the random false positives.
+
+
+
+### (e) Construct another matrix with 10000 rows and 9 columns with normally distributed data with variance equal to one and mean equal to zero for the 1st 3 columns, mean equal to one for the 2nd set of 3 columns, and mean equal to two for the 3rd set of 3 columns. Assume again that this matrix represents gene expression data for 10,000 genes for three groups of patients with three patients in each group. This data matrix simulates gene expressions with differences between groups (sometimes called positives). Use both ANOVA and kruskal-Wallis to find the number of significant genes (true positives). Also report the number of false negatives.
+
+
+```{r}
+
+rand_rows = 10000
+rand_cols = 3
+
+mat1 <- matrix(rnorm(n= rand_rows * rand_cols, mean = 0, sd= 1), nrow = rand_rows, ncol = rand_cols)
+mat2 <- matrix(rnorm(n= rand_rows * rand_cols, mean = 1, sd= 1), nrow = rand_rows, ncol = rand_cols)
+mat3 <- matrix(rnorm(n= rand_rows * rand_cols, mean = 2, sd= 1), nrow = rand_rows, ncol = rand_cols)
+
+randGene2 = cbind(mat1, mat2, mat3)
+
+randGene2.anova <- apply(randGene2,1,function(x) anova(lm(x~factorGroups))$Pr[1])
+randGene2.k <- apply(randGene2, 1, function(x) kruskal.test(x~factorGroups)$p.value)
+
+
+
+sum(randGene2.anova < 0.05)
+table(randGene2.anova < 0.05)
+
+sum(randGene2.k < 0.05)
+table(randGene2.k < 0.05)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

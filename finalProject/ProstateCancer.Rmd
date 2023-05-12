@@ -1,0 +1,306 @@
+---
+title: "ProstateCancer"
+author: "Ian Bates"
+date: "3/9/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(cache = TRUE)
+library(cBioPortalData)
+library(AnVIL)
+
+```
+
+```{r ,label='investigation'}
+library(knitr)
+browseVignettes("MultiAssayExperiment")
+
+```
+
+```{r, label='MultiAssayExperiment-doc'}
+
+library(MultiAssayExperiment)
+library(GenomicRanges)
+library(SummarizedExperiment)
+library(RaggedExperiment)
+library(jsonlite)
+library(survival)
+library(survminer)
+
+
+```
+```{r}
+# https://waldronlab.io/MultiAssayWorkshop/articles/Ramos_MultiAssayExperiment.html
+# https://bioconductor.org/packages/devel/bioc/vignettes/MultiAssayExperiment/inst/doc/QuickStartMultiAssay.htmlA
+
+library(curatedTCGAData)
+library(TCGAutils)
+library(SingleCellMultiModal)
+library(UpSetR)
+library(GenomicDataCommons)
+```
+
+workshop follow along
+https://cbioportal.github.io/2020-cbioportal-r-workshop/
+
+https://cbioportal.github.io/2020-cbioportal-r-workshop/Webinar_Example1.pdf
+
+
+https://cbioportal.github.io/2020-cbioportal-r-workshop/Example2.pdf
+
+sudy json:
+{
+    "name": "Prostate Adenocarcinoma (TCGA, PanCancer Atlas)",
+    "description": "Prostate Adenocarcinoma TCGA PanCancer data. The original data is <a href=\"https://gdc.cancer.gov/about-data/publications/pancanatlas\">here</a>. The publications are <a href=\"https://www.cell.com/pb-assets/consortium/pancanceratlas/pancani3/index.html\">here</a>.",
+    "publicStudy": true,
+    "pmid": "29625048,29596782,29622463,29617662,29625055,29625050,29617662,30643250,32214244,29625049,29850653",
+    "citation": "TCGA, Cell 2018",
+    "groups": "PUBLIC;PANCAN",
+    "status": 0,
+    "importDate": "2022-01-20 18:25:32",
+    "allSampleCount": 494,
+    "readPermission": true,
+    "studyId": "prad_tcga_pan_can_atlas_2018",
+    "cancerTypeId": "prad",
+    "referenceGenome": "hg19"
+}
+```{r}
+library(rjson)
+study.json <- fromJSON(file='study_info.json')
+study.json$studyId
+
+
+
+
+```
+
+```{r, label='intialize-bioportal'}
+cbio <- cBioPortal()
+
+cbio
+
+
+cBioCache()
+
+setCache(
+    directory = tools::R_user_dir("cBioPortalData", "cache"),
+    verbose = TRUE,
+    ask = interactive()
+)
+
+
+study.all_data <- cBioDataPack(
+    study.json$studyId,
+    names.field = c("Hugo_Symbol", "Entrez_Gene_Id", "Gene"),
+    cleanup = TRUE,
+    ask = TRUE
+)
+study.all_data
+class(study.all_data)
+metadata(study.all_data)
+```
+
+
+```{r, label='cBioPortal-playground'}
+
+show(study.all_data)
+length(study.all_data)
+names(study.all_data)
+ct <- dimnames(study.all_data)
+
+colData(study.all_data)
+sampleMap(study.all_data)
+metadata(study.all_data)
+summary(complete.cases(study.all_data))
+colnames(study.all_data)
+experiments(study.all_data)
+
+subset_experiment <- study.all_data[, , c('cna', 'log2_cna')]
+class(subset_experiment)
+experiments(subset_experiment)
+
+
+?upsetSamples
+upsetSamples(study.all_data )
+upsetSamples(subset_experiment)
+
+
+```
+
+
+```{r, label="extract-assay-sample"}
+sample_map_df <- sampleMap(study.all_data["cna"])
+t <- sample_map_df$colname
+primary_id <- sample_map_df@listData[["primary"]]
+length(t)
+length(primary_id)
+u_p <
+u_t <- unique(t)
+length(u_t )
+
+class(sample_map_df)
+
+
+head(sample_map_df)
+
+
+experiments(study.all_data)
+
+```
+
+
+
+```{r, label='combine-assays'}
+# getWithColData:  https://rdrr.io/bioc/MultiAssayExperiment/f/vignettes/MultiAssayExperiment.Rmd 
+(cna_data <- getWithColData(study.all_data,'cna' ))
+cna_data
+class(cna_data)
+
+
+cna_log2_data <- getWithColData(study.all_data, 'log2_cna')
+cna_log2_data
+
+
+combined <- rbind(cna_data, cna_log2_data)
+combined
+
+```
+
+```{r, label='subsetting-summary-assays'}
+
+```
+
+
+
+```{r}
+
+
+all_clinical_data = clinicalData(cbio, studyId = study.json$studyId)
+head(all_clinical_data)
+table(all_clinical_data$TUMOR_TYPE)
+table(all_clinical_data$NEW_TUMOR_EVENT_AFTER_INITIAL_TREATMENT)
+
+
+
+
+test_assay <- assays(study.all_data, withDimnames=TRUE)
+test_assay2 <- study.all_data@sampleMap@listData[["assay"]]
+cna_log2 <- test_assay@listData[["log2_cna"]]
+cna <- test_assay@listData[["cna"]]
+
+coldat <- as.data.frame(colData(study.all_data))
+table(study.all_data$AGE)
+table(study.all_data$ICD_O_3_HISTOLOGY)
+table(study.all_data$TISSUE_SOURCE_SITE)
+table(study.all_data$PATH_N_STAGE)
+table(study.all_data$CANCER_TYPE)
+table(study.all_data$CANCER_TYPE_DETAILED)
+
+assays(study.all_data)
+all_assays <- assays(study.all_data)
+
+cna_data <- getWithColData(study.all_data,'cna' )
+cna_data
+rowRanges(cna_data)
+colData(cna_data)
+
+cna_log2_data <- getWithColData(study.all_data, 'log2_cna')
+cna_log2_data
+combined <- rbind(cna_data, cna_log2_data)
+combined
+browseVignettes("SummarizedExperiment")
+
+
+
+?getWithColData
+# https://www.bioconductor.org/help/course-materials/2019/BSS2019/04_Practical_CoreApproachesInBioconductor.html
+colData(cna_data)
+
+cna_test_data <- as.data.frame(cna_data)
+sampleTables(study.all_data)
+?sampleTables
+
+
+# coldat$y <- Surv(study.all_data$, study.all_data$vital_status)
+
+class(cna)
+cna['SLC7A11',2]
+cna_log2['SLC7A11',2]
+cna['UBE2Q2P2',1]
+cna_log2['UBE2Q2P2',1]
+
+```
+```{r, label='compare-cbioportal-vs-published-data'}
+published_data <- read.csv('C:/Users/ianch/GeorgeMason/binf702/r_code/binf702/finalProject/data_curated_trans.csv')
+p_data <- data.frame(published_data[,-1], row.names = published_data[,1])
+
+
+cna_t <- as.data.frame(t(as.matrix(cna)))
+c_names <- colnames(cna_t)
+c_names <- paste(c_names, "_IB", sep = "")
+c_rows <-rownames(cna_t)
+c_rows[1]
+c_rows <- substr(c_rows, 1, nchar(c_rows)-3)
+colnames(cna_t) <- c_names
+rownames(cna_t) <- c_rows
+
+total_data <- merge(study.cur_data, cna_log2_t, by.x=0, by.y=0, all=FALSE)
+ordered_df <- total_data[,order(colnames(total_data))]
+
+```
+
+
+
+```{r}
+
+study.id <- 'prad_tcga_pan_can_atlas_2018'
+study.name <- 'Prostate Adenocarcinoma (TCGA, PanCancer Atlas)'
+# getStudies(cbio)
+
+study.data <- clinicalData(cbio, studyId = study.id)
+study.samples <- allSamples(cbio, studyId = study.id)
+study.genes <- getDataByGenes(cbio, studyId = study.id)
+
+molecularProfiles(cbio, studyId = study.id)
+sampleLists(cbio, studyId = study.id)
+t<-samplesInSampleLists(cbio, sampleListIds = c('prad_tcga_pan_can_atlas_2018_all'))
+?getDataByGenes
+genePanels(api=cbio)
+
+all_data <- cBioPortalData(cbio, studyId = study.id, genePan)
+
+study.cur_data <- read.csv('C:/Users/ianch/GeorgeMason/binf702/r_code/binf702/finalProject/data_curated_trans.csv')
+head(study.cur_data)
+ncol(study.cur_data)
+
+study.cur_data[,'ACTRT2']
+study.cur_data[,'M_SLC7A11']
+study.cur_data[1, 'SLC7A11']
+study.cur_data[1,'UBE2Q2P2']
+study.cur_data[1,'M_UBE2Q2P2']
+
+cna_log2_t <- as.data.frame(t(as.matrix(cna)))
+c_names <- colnames(cna_log2_t)
+c_names <- paste(c_names, "_IB", sep = "")
+c_rows <-rownames(cna_log2_t)
+c_rows[1]
+c_rows <- substr(c_rows, 1, nchar(c_rows)-3)
+colnames(cna_log2_t) <- c_names
+rownames(cna_log2_t) <- c_rows
+
+total_data <- merge(study.cur_data, cna_log2_t, by.x=0, by.y=0, all=FALSE)
+ordered_df <- total_data[,order(colnames(total_data))]
+
+
+
+
+study.all_data <- cBioDataPack(
+study.id,
+names.field = c("Hugo_Symbol", "Entrez_Gene_Id", "Gene"),
+cleanup = TRUE,
+ask = TRUE
+)
+```
+

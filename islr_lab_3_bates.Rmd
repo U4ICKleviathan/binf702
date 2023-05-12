@@ -1,9 +1,10 @@
 ---
 title: "ISLR Lab 3 - Bates"
 author: "Ian Bates"
-date: "2020-03-05"
-
-output: html_document
+date: '2020-03-05'
+output:
+  word_document: default
+  html_document: default
 ---
 
 This is the follow along for the Lab 3 in section **[3.6 Lab: Linear Regression](https://learn-us-east-1-prod-fleet01-xythos.content.blackboardcdn.com/blackboard.learn.xythos.prod/5a30bcf95ea52/11153633?X-Blackboard-Expiration=1646514000000&X-Blackboard-Signature=A2aWNxQgCPofolJJuwcejXo36gTKN71ZYluA7hWC1ik%3D&X-Blackboard-Client-Id=200078&response-cache-control=private%2C%20max-age%3D21600&response-content-disposition=inline%3B%20filename%2A%3DUTF-8%27%27ISLR%2520Seventh%2520Printing.pdf&response-content-type=application%2Fpdf&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEBAaCXVzLWVhc3QtMSJIMEYCIQC4kGlJLeAMlL0A7S%2FUlNcm2cVjRnAStlorpd3B60BXKgIhAJYyG6Rh7vT0RWvFIXc0zAPqvZdFsnH8evDx2afrnv2gKvoDCHkQABoMNTU2OTAzODYxMzYxIgy82IEq6VzAGYvHbUQq1wO4v5NeSbcnW%2BYpFLZjv3yVmTA5dvF0UnemHO2rPRKjogaSbvWo8rZgWcjAStwK%2FpQsnuQ%2F6aKiZst1B%2FtovtjnOHRnHmQSMCAYSYkHQBURqBp3Lmx4OXo4Q2HX%2Bu%2BkhUcXLIo1F2KkgP%2Bskd7Uatt89vo4oaKFyLWv3ynEpNajMZw5PdS40JCjRTNpqn6gMKscQz%2FjzOknR3ir44wR5S6lZ%2B362e27AgbKNfaPtnVKSm9XltM7HkRSzkhhEcx5GUcbUVSnO20IUN%2BWWwXeSQGYs0Tpwq4X%2FVlHY8pK%2BK8WCEjAU2DC8WMv3suVsvGjkux3WB2yvMamOkIq1AmlMPCAgSUfoGX2BhyC5dOynk3t9sris8v302VG6B1fodpq4AUZlowgqrIGNPjBZtq5ZHnaeZnliG%2BPLwxoELqCy8OtlNlBjNa6KiSdOYjm%2FljexGaU%2B9pEcWq7teB6nFWamhYllYpn%2Fsf1KedT4Q3bow30DdBOMPjBOUB8gqk%2BAL23un7COVDzE0RKerc%2B%2B86ancRaRBgj95%2FSoNkloP41rt0LJKAOrqUS5h7mnsznxZwRjSFlvWQXtDYxAm3jkgsHg3zJApkN4Rs4G9N%2Bzc7RxlOiqj7SMw1z7nAwi4KOkQY6pAHNOda0I8%2B8%2Fqvt9eu99DSq7yOd2DdHBkDWQ1HbsFUP4nb%2Fks8cTGYRuUJDiUIEtJM%2BqZzNT8z3Qmy3Okv5SLy6T3KAFBpw0az5PzJNaY0O%2BjckOjLGJnU5U8PTXMrACAseYU5G5iFDpfs8dcOZT%2Bq4nHAoFXDVhqKAM9adF66814%2BcfIDJIZ74EzIWwbzPwNS9hBobkwXJxOjLPO%2FBaGn%2BIoLALA%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20220305T150000Z&X-Amz-SignedHeaders=host&X-Amz-Expires=21600&X-Amz-Credential=ASIAYDKQORRYVJQCUE3V%2F20220305%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=a15ed6b8c947e4ec27b99703d9d3c4a2c946833005f956acb19ff86645212057#page=123)** of our textbook **An Introduction to Statistical Learning with Applications in R**

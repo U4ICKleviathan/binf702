@@ -1,0 +1,298 @@
+[
+	{
+		"id": "shamsaraBioinformaticsAnalysisGenes2020",
+		"type": "article-journal",
+		"abstract": "The present study aimed to identify the genes associated with the involvement of adjunct lymph nodes of patients with prostate cancer (PCa) and to provide valuable information for the identification of potential diagnostic biomarkers and pathological genes in PCa metastasis. The most important candidate genes were identified through several machine learning approaches including K-means clustering, neural network, Naïve Bayesian classifications and PCA with or without downsampling. In total, 21 genes associated with lymph nodes involvement were identified. Among them, nine genes have been identified in metastatic prostate cancer, six have been found in the other metastatic cancers and four in other local cancers. The amplification of the candidate genes was evaluated in the other PCa datasets. Besides, we identified a validated set of genes involved in the PCa metastasis. The amplification of SPAG1 and PLEKHF2 genes were associated with decreased survival in patients with PCa.",
+		"container-title": "Genomics",
+		"DOI": "10.1016/j.ygeno.2020.06.035",
+		"ISSN": "0888-7543",
+		"issue": "6",
+		"journalAbbreviation": "Genomics",
+		"language": "en",
+		"page": "3871-3882",
+		"source": "ScienceDirect",
+		"title": "Bioinformatics analysis of the genes involved in the extension of prostate cancer to adjacent lymph nodes by supervised and unsupervised machine learning methods: The role of SPAG1 and PLEKHF2",
+		"title-short": "Bioinformatics analysis of the genes involved in the extension of prostate cancer to adjacent lymph nodes by supervised and unsupervised machine learning methods",
+		"URL": "https://www.sciencedirect.com/science/article/pii/S0888754320300963",
+		"volume": "112",
+		"author": [
+			{
+				"family": "Shamsara",
+				"given": "Elham"
+			},
+			{
+				"family": "Shamsara",
+				"given": "Jamal"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2022",
+					3,
+					21
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2020",
+					11,
+					1
+				]
+			]
+		},
+		"citation-key": "shamsaraBioinformaticsAnalysisGenes2020"
+	},
+	{
+		"id": "http://zotero.org/users/local/s4jgOtSV/items/MWGPH9D8",
+		"type": "document",
+		"title": "Golub et al. - 1999 - Molecular Classification of Cancer Class Discover.pdf",
+		"citation-key": ""
+	},
+	{
+		"id": "golubMolecularClassificationCancer1999",
+		"type": "article-journal",
+		"abstract": "Although cancer classification has improved over the past 30 years, there has been no general approach for identifying new cancer classes (class discovery) or for assigning tumors to known classes (class prediction). Here, a generic approach to cancer classification based on gene expression monitoring by DNA microarrays is described and applied to human acute leukemias as a test case. A class discovery procedure automatically discovered the distinction between acute myeloid leukemia (AML) and acute lymphoblastic leukemia (ALL) without previous knowledge of these classes. An automatically derived class predictor was able to determine the class of new leukemia cases. The results demonstrate the feasibility of cancer classification based solely on gene expression monitoring and suggest a general strategy for discovering and predicting cancer classes for other types of cancer, independent of previous biological knowledge.",
+		"container-title": "Science",
+		"DOI": "10.1126/science.286.5439.531",
+		"ISSN": "0036-8075, 1095-9203",
+		"issue": "5439",
+		"journalAbbreviation": "Science",
+		"language": "en",
+		"page": "531-537",
+		"source": "DOI.org (Crossref)",
+		"title": "Molecular Classification of Cancer: Class Discovery and Class Prediction by Gene Expression Monitoring",
+		"title-short": "Molecular Classification of Cancer",
+		"URL": "https://www.science.org/doi/10.1126/science.286.5439.531",
+		"volume": "286",
+		"author": [
+			{
+				"family": "Golub",
+				"given": "T. R."
+			},
+			{
+				"family": "Slonim",
+				"given": "D. K."
+			},
+			{
+				"family": "Tamayo",
+				"given": "P."
+			},
+			{
+				"family": "Huard",
+				"given": "C."
+			},
+			{
+				"family": "Gaasenbeek",
+				"given": "M."
+			},
+			{
+				"family": "Mesirov",
+				"given": "J. P."
+			},
+			{
+				"family": "Coller",
+				"given": "H."
+			},
+			{
+				"family": "Loh",
+				"given": "M. L."
+			},
+			{
+				"family": "Downing",
+				"given": "J. R."
+			},
+			{
+				"family": "Caligiuri",
+				"given": "M. A."
+			},
+			{
+				"family": "Bloomfield",
+				"given": "C. D."
+			},
+			{
+				"family": "Lander",
+				"given": "E. S."
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2022",
+					3,
+					21
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"1999",
+					10,
+					15
+				]
+			]
+		},
+		"citation-key": "golubMolecularClassificationCancer1999"
+	},
+	{
+		"id": "http://zotero.org/users/local/s4jgOtSV/items/RGMFYVV9",
+		"type": "document",
+		"title": "Cerami et al. - 2012 - The cBio Cancer Genomics Portal An Open Platform .pdf",
+		"URL": "https://watermark.silverchair.com/401.pdf?token=AQECAHi208BE49Ooan9kkhW_Ercy7Dm3ZL_9Cf3qfKAc485ysgAAA-EwggPdBgkqhkiG9w0BBwagggPOMIIDygIBADCCA8MGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMR6BLVGGjiPxaCrZHAgEQgIIDlOJDeAKo-vX7g1D7Mxdw4DDZV9cQwp_YSTCHl8zJjwpxaPjnXzlMj7c-KTpl6IPbsMun_YiMJ53AYd0qDVUmKWIxqrbk2KXDJdCMtzZVnxkwmVQgaISEwtuQCcuZhx87oyuvDD1tPJ1Z3Om9znRtg_GMxGfVxmXaOVw2kCEnhBFrD4ITWm1_HwEz9y477svyAvS4TUN0QWIj1XqtFRJle9DkuIPLGsZ9Noc8uuShII0mViD2LIIJtOcyYCPrcDA4wpDltTepFvXCvVkmAP4iRzY_Dk5rZjXkhIHbmF02wffrnTyikoQ0UIBQRO3Of8TyxAN3fnUGzqVN1-PWvYY8HKp1_cX70aI9gc34VttRJ2nqeiqWZjS0U9cdp0UqXWHalH8x6QPJvIGqZhflxBDlpfEYmPE9kpJHvBRgffKjBes89O-nC-YQWkG8RZFuXd24OnqjPkSZL-v1Zt6XLWcri5GNLydSPjcdi3QH48u7RveIyoeXfPcLYv-9AcupiIYo6lrZjh7LXRkA9GRdtkF1k9Jy_-wjgwHLqy9mMRajpTQSU_aS3nrfn02_ClU-2p7qM41G_6AnUVRehRmf4fFRLxPcqqHKMFECbvDp8F_dqyb1Gu_cabbJ2o8EPHouvwR19fMq0XZ6HCDCjBJe6vjgZRiQB9E-4QEAaA-wWAVwnzC9WbFBW1uU4NMu90R8oaLV4JWWSm4Bs9P0DKvXxxJtZ4bKi0ZvJwdNuGeZ_2HlSaQcR5rshAdfpVbpXdHKjlO7P7Bb1w9JN_897xI9Y02Z0RQzU0IqT7onvMG3EMFx47DNQOolf4t7_odvpH8BmvIcpOHJ-zG8So4IXtCGXRVIRSivmf0Wsid1DrTLo4CfvUA3eTJJR413d-xHh4-OvSpwz7fEUuhIXJ_l1SzsCjyrWdZxhriC6TZS1c4H4IzBYf6NE5eUGTn3P0fdDqmCoNTNzUbBcWCsv0FTHo1LDxsWEyPOHIJhjOkn73FFqud2mve99KDXniogjtOAJibeghiPXM_B6APpHA3XTie2VOTrggTMWhaMFUoyBErZDwOSPH24p2F4ooQp5QsbpWgrqDkgzOIUOdIiRUJpaFal6ssgvPIEX-n2N9OI1cPVdwPCzwDjymIcjzgnFjaKkYo3B43oXj8ewdh4VK6nkuEqIfDxf8dguSAsRxrKi1obu1ncqBKHt4qjwUq_BlIrlL478h4F04FRcN4",
+		"accessed": {
+			"date-parts": [
+				[
+					"2022",
+					3,
+					21
+				]
+			]
+		},
+		"citation-key": ""
+	},
+	{
+		"id": "ceramiCBioCancerGenomics2012",
+		"type": "article-journal",
+		"container-title": "Cancer Discovery",
+		"DOI": "10.1158/2159-8290.CD-12-0095",
+		"ISSN": "2159-8274, 2159-8290",
+		"issue": "5",
+		"journalAbbreviation": "Cancer Discovery",
+		"language": "en",
+		"page": "401-404",
+		"source": "DOI.org (Crossref)",
+		"title": "The cBio Cancer Genomics Portal: An Open Platform for Exploring Multidimensional Cancer Genomics Data: Figure 1.",
+		"title-short": "The cBio Cancer Genomics Portal",
+		"URL": "http://cancerdiscovery.aacrjournals.org/lookup/doi/10.1158/2159-8290.CD-12-0095",
+		"volume": "2",
+		"author": [
+			{
+				"family": "Cerami",
+				"given": "Ethan"
+			},
+			{
+				"family": "Gao",
+				"given": "Jianjiong"
+			},
+			{
+				"family": "Dogrusoz",
+				"given": "Ugur"
+			},
+			{
+				"family": "Gross",
+				"given": "Benjamin E."
+			},
+			{
+				"family": "Sumer",
+				"given": "Selcuk Onur"
+			},
+			{
+				"family": "Aksoy",
+				"given": "Bülent Arman"
+			},
+			{
+				"family": "Jacobsen",
+				"given": "Anders"
+			},
+			{
+				"family": "Byrne",
+				"given": "Caitlin J."
+			},
+			{
+				"family": "Heuer",
+				"given": "Michael L."
+			},
+			{
+				"family": "Larsson",
+				"given": "Erik"
+			},
+			{
+				"family": "Antipin",
+				"given": "Yevgeniy"
+			},
+			{
+				"family": "Reva",
+				"given": "Boris"
+			},
+			{
+				"family": "Goldberg",
+				"given": "Arthur P."
+			},
+			{
+				"family": "Sander",
+				"given": "Chris"
+			},
+			{
+				"family": "Schultz",
+				"given": "Nikolaus"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2022",
+					3,
+					21
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2012",
+					5
+				]
+			]
+		},
+		"citation-key": "ceramiCBioCancerGenomics2012"
+	},
+	{
+		"id": "blackwelderProstateCancerScreening2019",
+		"type": "article-journal",
+		"collection-title": "Prevention and Screening",
+		"container-title": "Primary Care: Clinics in Office Practice",
+		"DOI": "10.1016/j.pop.2018.10.012",
+		"ISSN": "0095-4543",
+		"issue": "1",
+		"journalAbbreviation": "Primary Care: Clinics in Office Practice",
+		"language": "en",
+		"page": "149-155",
+		"source": "ScienceDirect",
+		"title": "Prostate Cancer Screening: Shared Decision-Making for Screening and Treatment",
+		"title-short": "Prostate Cancer Screening",
+		"URL": "https://www.sciencedirect.com/science/article/pii/S0095454318301003",
+		"volume": "46",
+		"author": [
+			{
+				"family": "Blackwelder",
+				"given": "Russ"
+			},
+			{
+				"family": "Chessman",
+				"given": "Alexander"
+			}
+		],
+		"accessed": {
+			"date-parts": [
+				[
+					"2022",
+					3,
+					21
+				]
+			]
+		},
+		"issued": {
+			"date-parts": [
+				[
+					"2019",
+					3,
+					1
+				]
+			]
+		},
+		"citation-key": "blackwelderProstateCancerScreening2019"
+	}
+]

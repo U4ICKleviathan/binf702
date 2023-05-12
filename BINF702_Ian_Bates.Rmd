@@ -1,0 +1,368 @@
+---
+title: "BINF702_Final_Ian_Bates"
+author: "Ian Bates"
+date: "5/16/2022"
+output: word_document
+
+
+csl: cell-numeric_no_access.csl
+bibliography: binf702_final.bib
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = F)
+knitr::opts_chunk$set(message = F)
+
+```
+## Problem 1 - Consider the Pima Indian data contained in the MASS package.Provide a table of of probability of correct classification results from a 1, 3, 5 nearest neighbor classifier. Train on Pima.tr and test on Pima.te.Be careful not to include the type column as this is effectively the class label.
+
+```{r, label='problem-1'}
+library(class)
+
+data(Pima.tr, package = 'MASS')
+data(Pima.te, package = 'MASS')
+
+set.seed(1)
+train <- Pima.tr
+train.type <- train$type
+train <- subset(train, select = -type)
+
+test <- Pima.te
+test.type <- test$type
+test <- subset(test, select = -type)
+
+knn.pred.1 = knn(train, test, train.type, k = 1)
+knn.pred.3 = knn(train, test, train.type, k = 3)
+knn.pred.5 = knn(train, test, train.type, k = 5)
+
+
+```
+
+Here is the resulting comparison with $k=1$:
+```{r}
+table(knn.pred.1, test.type)
+```
+
+The predictive accuracy with $k=1$ is `r (174+53)/length(test.type)`
+
+
+Here is the resulting comparison with $k=3$:
+```{r}
+table(knn.pred.3, test.type)
+```
+
+The predictive accuracy with $k=3$ is `r (192+64)/length(test.type)`
+
+
+Here is the resulting comparison with $k=5$:
+```{r}
+table(knn.pred.5, test.type)
+
+```
+
+The predictive accuracy with $k=5$ is `r (196+66)/length(test.type)`
+
+As we increase K, the results of TRUE positives and TRUE negatives increase while FALSE positives and FALSE negatives decrease with $k=5$ giving us the highest predictive accuracy
+
+
+
+## Problem 2 - Return to the Pima Indian data and provide probability of correct clasification results using a support vector machine. Once again train on Pima.tr and test on Pima.te.
+
+
+```{r, label='problem2'}
+library(e1071)
+data(Pima.tr, package = 'MASS')
+data(Pima.te, package = 'MASS')
+
+set.seed(1)
+
+train <- Pima.tr
+type <- train$type
+train <- subset(train, select = -type)
+train <- as.data.frame(scale(train))
+train <- cbind(train, as.factor(type))
+
+obj <-
+  tune.svm(
+    type ~ .,
+    data = Pima.tr,
+    kernel = "linear",
+    cost = c(0.001, 0.01, 0.1, 1, 5, 10, 100) ,
+    scale = TRUE
+  )
+# summary(obj)
+bestmod = obj$best.model
+tune.test = predict(bestmod, newdata = Pima.te, scale = TRUE)
+
+
+```
+
+Here is the resulting summary table of the predicted values of the testing data with the true labels:
+
+```{r}
+table(predict = tune.test , truth = Pima.te$type)
+
+```
+
+As we can see, we have 197 True NO's and 67 True YES out of a total `r (197+42+26+67)`, which gives us a predictive accuracy of `r (197+67)/(197+42+26+67)`
+
+
+## Problem 3 - Repeat your analysis of problem 2 using Random Forests.
+```{r, label='problem-3'}
+library(randomForest)
+library(caret)
+data(Pima.tr, package = 'MASS')
+data(Pima.te, package = 'MASS')
+
+set.seed(1)
+train <- Pima.tr
+train.type <- train$type
+train <- subset(train, select = -type)
+train <- as.data.frame(scale(train))
+
+test <- Pima.te
+test.type <- test$type
+test <- subset(test, select = -type)
+test <- as.data.frame(scale(test))
+
+rf1 <-
+  randomForest(
+    train,
+    train.type,
+    ntree = 1000,
+    importance = TRUE,
+    proximity = TRUE
+  )
+
+pred_rf <- predict(rf1, test, type = "class", proximity = TRUE)
+
+```
+
+Here is the resulting summary table of the predicted values of the testing data with the true labels:
+
+```{r}
+table(rfpredt = pred_rf$predicted, Yt = test.type)
+
+```
+
+As we can see, we have 193 True NO's and 64 True YES out of a total `r (193+45+30+64)`, which gives us a predictive accuracy of `r (193+64)/(193+45+30+64)`
+
+
+
+## Problem 4 - Return to your model of problem 3 and perform a variable importance plot based on MeanDecreaseGini.Identify the top 3 variables and discuss their biological relevance.
+
+```{r, label='problem-4'}
+
+varImpPlot(rf1,
+           n.var = 3,
+           pch=19,
+           main='RF - Variables of Importance',
+           col="red",
+           gcolor="blue",
+           lcolor="darkgreen", 
+           )
+
+
+```
+
+For both the MeanDecreaseAccuracy and MeanDecreaseGini, we see that the top 2 variables of importance are glu (plasma glucose concentration in an oral glucose tolerance test) and age (in years).  With respect to plasma glucose, there are many publications which show that elevated scores on a oral glucose tolerance test are an indicator for diabeties.  In this paper @abbasiPlasmaGlucoseConcentration2019, the conclusion states: "Plasma glucose concentration of ⩾8.6 mmol/L 60 min post oral glucose identifies higher proportions of combined impaired fasting glucose and impaired glucose tolerance individuals as well as normal glucose tolerance and impaired fasting glucose individuals with a more adverse cardio-metabolic profile, contributing to observed increased overall risk of type 2 diabetes and other metabolic diseases."
+
+There are other studies which confirm that time frames as low as 30 minutes of an oral glucose tests can be an indicator of diabetes @hulmanGlucosePatternsOral2018. Diabetics are insensitive to insulin, the signal molecule for the cells to uptake the glucose in the bloodstream, and would therefore have an expected higher blood insulin level during the test. So it assuring that our random forest picked this as the top variable of importance.
+
+Age was the second most important variable in our random forest plot.  When we consider that diabetes is likely to emerge in people who are metabolically unhealthy, it is not surprising that as people age their metabolic health begins to deteriorate.  Advanced age has been shown @stephensImpactEducationAge2020 to be an important factor in metabolic disorders. There have been scientists that have found that advanced age is a key indicator of diabetes @kanayaPredictingDevelopmentDiabetes2005.  This is again assuring that we found age to be in our top 3 variables of importance.
+
+In the MeanDecreaseGini calculation of the variable of importance, we see that ped (or diabetes pedigree function) is listed as the 3rd most important variable. This function is based on the family history of diabetes. There are many papers which confirm that there is a high incidence of diabetes if there is a family history of the disease @deoStudyInheritanceDiabetes2006; @joshiFamilyHistoryPedigree2006; @maGeneticCharacteristicsFamilial2008. Like many other diseases, there are heritable genes that cause diabetes so it is unsurprising that we identified this to be a potentially important variable.
+
+
+
+## Problem 5 - Consider the wines dataset contained in the kohonen package. Provide side by side boxplots of the original wines data along with the wines data that has been subjected to a column wise standardizing transformation.
+
+```{r, label='problem5', fig.height=4, fig.width=10}
+# install.packages('kohonen')
+data(wines, package = 'kohonen')
+
+wines.sc <- scale(wines)
+
+par(mfrow = c(1, 2))
+boxplot(wines, main = 'unscaled wine data')
+boxplot(wines.sc, main = 'scaled wine data')
+
+
+```
+
+The attribute *proline* clearly has a significantly different range of values before scaling.  After we perform the scaling of the data, the box plots appear to be much more suitable for analysis.
+
+## Problem 6 - In this problem we will use a new package to calculate the desired number of clusters in the wine data and then we will use this number along with hclust to create a cluster index which we will compare to the true labels indicating the region the wine grapes were grown in. [Hint - Please install the NbClust package and execute the following command to determine the number of clusters.] no_of_Clusters = NbClust(wines.sc, distance = “euclidean”, min.nc = 2, max.nc = 10, method = “complete”, index =“all”). Compare the obtained class labels to the true ones contained in vintages.
+
+```{r, label='problem-6', fig.height=6, fig.width=10}
+library('NbClust')
+no_of_Clusters = NbClust(
+  wines.sc,
+  distance = 'euclidean',
+  min.nc = 2,
+  max.nc = 10,
+  method = 'complete',
+  index = 'all'
+)
+
+```
+
+Here, we see that NbClust identifies an optimal number of clusters for this data set to be:
+
+```{r}
+length(unique(no_of_Clusters$Best.partition))
+
+```
+
+
+
+```{r,  fig.height=8, fig.width=16}
+
+
+d <- dist(wines.sc, method = "euclidean")
+H.fit <- hclust(d, method = "ward")
+
+par(mfrow = c(1, 1))
+plot(H.fit)
+groups <-
+  cutree(H.fit, k = length(unique(no_of_Clusters$Best.partition)))
+rect.hclust(H.fit, k = 3, border = "red") 
+
+```
+
+Now, to compare the results of hclust groupings to the ground truth in vintages:
+
+```{r}
+table(vintages, groups)
+
+```
+
+There appears to be an issue with the ordering of the factor levels from the vintages vector and the class labels that hclust returns. The resulting class assigned to the data appear to be inconsistent with the vintages, so I tried to re-order the factor levels. Since the original call *table(vintages, groups)* shows many values of 0 for each row, it appears that the class assignment from hclust closely follows that of the ground truth. So it appears to be a safe assumption that the ordering of the factor levels in the vintages is an issue. I will change the order to coincide with the order of the vintages as they appear in the vintage vector:
+
+```{r}
+vintages
+vintages_o <- factor(vintages, levels = c('Barolo', 'Grignolino', 'Barbera') )
+vintages_o
+
+```
+
+As we can see in the print out above, we are able to change the order of the factors levls without changing the values of the vector containing the vintages.  These 2 vectors are identical save for the order of the levels.  
+
+When we then analyse the table of the classes returned from hclust to the ground truth, we see the proper comparison between the classes returned from hclust and the ground truth:
+
+```{r}
+table(vintages_o, groups)
+```
+
+This confusion matrix looks much better.  The resulting predictive accuracy of this has a 57 true identifications of Barolo to group 1, 59 Grignolino to group 2 and 48 Barbera to group 3 out of a total of `r length(vintages)` which gives us a predictive accuracy of `r (57+59+48)/length(vintages)` 
+
+
+## Problem 7 - Repeat your analysis or problem 6 using kmeans. First run set.seed(0)
+
+```{r, label='prob-7'}
+set.seed(0)
+cl <- kmeans(wines.sc, 3)
+plot(wines.sc,
+     col = cl$cluster,
+     xlab = '',
+     ylab = '')
+points(cl$centers,
+       col = c(1:3),
+       pch = 8,
+       cex = 2)
+
+```
+
+
+The resulting confusion matrix for the kmeans clustering is:
+
+```{r}
+
+table(vintages, cl$cluster)
+
+```
+
+Once again, we see that there is a difference in the ordering of the factors in terms of producing a confusion matrix that we are used to seeing. This time, however, the resulting confusion matrix is less offensive to the eyes, so I will not re-order the factors. 
+
+We have 48 matches between Barbera and group 3, 58 matches of Barolo to group 2, and 65 matches of Grignolino to group 1, which gives us an accuracy of `r (48+58+65)/length(vintages)` 
+
+
+
+## Problem 8 - Perform principle components analysis on the standardized wine data using prcomp.[Hint - Remember the data has already been centered and scaled]. How many principle components are needed to capture roughly 89% of the variance?
+
+```{r, label='problem-8', fig.height=6, fig.width=10}
+library(PCAtools)
+
+p <- pca(wines.sc, removeVar = NULL)
+screeplot(
+  p,
+  hline = 89,
+  vline = 7,
+  axisLabSize = 14,
+  titleLabSize = 20,
+  returnPlot = FALSE
+) +
+  geom_label(aes(12, 80, label = '89% explained variation', size = 8))
+
+```
+
+As we can see in this combined SCREE plot, at 7 principle components, we see that 89% of the variance is explained.
+
+
+## Problem 9 - Make a plot of the scaled wines observations in the first two principle components. Plot “o” as the symbol and use red colors for the Barbera, green for the Barolo, and black for the Grigolino. Add in a legend in the bottom left portion of the plot.
+```{r, label='problem-9', fig.height=6, fig.width=6}
+library(ggfortify)
+p2 <- prcomp(wines.sc)
+wines.sc.v <- as.data.frame(wines.sc)
+wines.sc.v$vintages <- vintages
+autoplot(p2,
+         data = wines.sc.v,
+         colour = 'vintages',
+         main = 'P1 & P2 of scaled wine data') +
+  scale_color_manual(values = c(
+    "Barbera" = "red",
+    "Barolo" = "green",
+    "Grigolino" = "black"
+  )) + theme(legend.position = c(0.1, 0.15))
+
+
+```
+
+
+
+## Problem 10 - In this problem we will perform an analysis of the sacled wines data using Gaussian mixture-based clustering. [Hint - We will be using the mclust package and patterning our analysis after the tutorial contained here https://cran.r-project.org/web/packages/mclust/vignettes/mclust.html]. Calculate the BIC values using the scaled wines data, call these wines.sc.BIC. plot these BIC values and using the summary method on the BIC object provide an interpretation as to which model is the best. Call Mclust to obtain a full model-based clustering solution on the scaled wines data, call it wines.sc.modl. You will be passing wines.sc to Mclust and setting x = wines.sc.BIC. Use the summary method to examine this object but do not set parameters = TRUE. Finally let’s compare the clustering obtained using Gaussian-based mixtures against the ground truth. Ground truth will be the rows in the table as obtained from the vintages and the columns will be the mixture terms.
+
+
+
+```{r, label='problem-10', fig.height=6, fig.width=10}
+library(mclust)
+
+wines.sc.BIC <- mclustBIC(wines.sc)
+
+plot(wines.sc.BIC)
+
+wines.sc.modl <- Mclust(wines.sc, x = wines.sc.BIC)
+summary(wines.sc.modl, parameters = FALSE)
+
+table(vintages, wines.sc.modl$classification)
+
+```
+
+
+Again, we see an issue with the ordering of the factors from the vintages factor vector and the class labels that Mclust returns, so we will follow the same logic as we did in problem 6 and use the vintages with the new order of the vintage factor levels
+
+
+```{r}
+table(vintages_o, wines.sc.modl$classification)
+```
+
+
+This confusion matrix is much simpler to read. We can now see that the accuracy is `r (55+70+48)/(58+71+48)`
+
+
+## References
+
+
+

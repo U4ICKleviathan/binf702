@@ -1,0 +1,15 @@
+{
+    "name": "Prostate Adenocarcinoma (TCGA, PanCancer Atlas)",
+    "description": "Prostate Adenocarcinoma TCGA PanCancer data. The original data is <a href=\"https://gdc.cancer.gov/about-data/publications/pancanatlas\">here</a>. The publications are <a href=\"https://www.cell.com/pb-assets/consortium/pancanceratlas/pancani3/index.html\">here</a>.",
+    "publicStudy": true,
+    "pmid": "29625048,29596782,29622463,29617662,29625055,29625050,29617662,30643250,32214244,29625049,29850653",
+    "citation": "TCGA, Cell 2018",
+    "groups": "PUBLIC;PANCAN",
+    "status": 0,
+    "importDate": "2022-01-20 18:25:32",
+    "allSampleCount": 494,
+    "readPermission": true,
+    "studyId": "prad_tcga_pan_can_atlas_2018",
+    "cancerTypeId": "prad",
+    "referenceGenome": "hg19"
+}

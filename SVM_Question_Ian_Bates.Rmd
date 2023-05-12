@@ -1,0 +1,63 @@
+---
+title: "SVM Question"
+author: "Ian Bates"
+date: "5/3/2022"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, label='svm-issue', warning=FALSE, message=FALSE}
+library(e1071)
+library("hgu95av2.db");library(ALL);data(ALL)
+ALLB123 <- ALL[,ALL$BT %in% c("B1","B2","B3")]
+anova.pValue <- apply(exprs(ALLB123), 1, function(x) anova(lm(x ~ ALLB123$BT))$Pr[1])
+names <- featureNames(ALL)[anova.pValue<0.00001]
+symb <- mget(names, env = hgu95av2SYMBOL)
+ALLBTnames <- ALLB123[names, ]
+test<- exprs(ALLBTnames)
+probeData <- as.matrix(exprs(ALLBTnames))
+row.names(probeData)<-unlist(symb)
+
+
+training <- sample(1:78, 39, replace = FALSE)
+testing <- setdiff(1:78,training)
+df <- data.frame(t(probeData))
+
+df <- data.frame(Y = factor(ALLBTnames$BT), X =t(probeData))
+Y <- factor(ALLBTnames$BT); X <- t(probeData)
+Yt <- factor(ALLBTnames$BT)[training]; Yv <- factor(ALLBTnames$BT)[testing]
+X <- t(probeData); Xt <- X[training,]; Xv <- X[testing,]
+svmEst <- svm(X, Y, data=df, type = "C-classification", kernel = "linear")
+svmPredict <- predict(svmEst, X, probability=TRUE)
+table(predict=svmPredict,truth= Y)
+summary(svmEst)
+
+
+```
+```{r, label='islr-lab-9'}
+ set.seed(1)
+x=matrix(rnorm (20*2), ncol=2)
+y=c(rep(-1,10), rep(1,10))
+x[y==1,]=x[y==1,] + 1
+# plot(x, col=(3-y))
+
+
+dat=data.frame(x=x, y=as.factor(y))
+
+
+library(e1071)
+xtest=matrix(rnorm (20*2) , ncol=2)
+ytest=sample (c(-1,1), 20, rep=TRUE)
+xtest[ytest==1,]= xtest[ytest==1,] + 1
+testdat=data.frame(x=xtest , y=as.factor(ytest))
+svmfit=svm(y∼., data=dat , kernel ="linear", cost =.01,
+scale=FALSE)
+ypred=predict (svmfit ,testdat )
+table(predict =ypred , truth=testdat$y ) 
+  
+```
+
