@@ -1,0 +1,1144 @@
+---
+title: "FinalProjectClean"
+author: "Ian Bates"
+date: "4/16/2022"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+setwd("C:/Users/ianch/GeorgeMason/binf702/r_code/binf702/finalProject")
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(cache = TRUE)
+
+```
+
+
+```{r label='install-packages', eval=TRUE}
+library(cBioPortalData)
+library(AnVIL)
+library(MultiAssayExperiment)
+library(GenomicRanges)
+library(SummarizedExperiment)
+library(RaggedExperiment)
+library(jsonlite)
+library(survival)
+library(survminer)
+
+library(curatedTCGAData)
+library(TCGAutils)
+library(SingleCellMultiModal)
+library(UpSetR)
+library(GenomicDataCommons)
+library(rjson)
+study.json <- fromJSON(file = 'study_info.json')
+patientCols <- c(
+  "PATIENT_ID",
+  "PATH_N_STAGE",
+  "NEW_TUMOR_EVENT_AFTER_INITIAL_TREATMENT",
+  "PATH_T_STAGE",
+  "PRIOR_DX",
+  "RADIATION_THERAPY",
+  "AGE"
+)
+study.json$name
+
+setwd("C:/Users/ianch/GeorgeMason/binf702/r_code/binf702/finalProject/presentation")
+```
+
+
+
+```{r, label='intialize-bioportal', warning=FALSE, message=FALSE, include=FALSE}
+cbio <- cBioPortal()
+
+cbio
+```
+
+
+
+```{r, label='intitalize-cache', warning=FALSE, message=FALSE, include=FALSE, eval=FALSE}
+
+cBioCache()
+
+setCache(
+  directory = tools::R_user_dir("cBioPortalData", "cache"),
+  verbose = TRUE,
+  ask = interactive()
+)
+
+```
+
+
+
+```{r, label='read-from-cache', include=FALSE}
+
+study.json$studyId
+
+study.all_data <- cBioDataPack(
+  study.json$studyId,
+  names.field = c("Hugo_Symbol", "Entrez_Gene_Id", "Gene"),
+  cleanup = TRUE,
+  ask = TRUE, 
+  use_cache = TRUE
+)
+study.all_data
+
+```
+
+```{r, label='read-curated-data', eval=FALSE}
+
+ref_data <- read.csv('CopyOfdata_curated_trans.csv')
+
+```
+
+```{r, label='identify-records', eval=FALSE}
+test <- grep("SSX9", names(ref_data), value = TRUE)
+test <- grep("NSMCE1", names(ref_data), value = TRUE)
+idx <- match(test, names(ref_data))
+
+patinet_index = ref_data[ref_data['PATIENT_ID']=='TCGA-2A-A8VL',]
+patinet_index[,idx]
+
+
+
+for(name in names(study.all_data)){
+  td <- getWithColData(study.all_data, name)
+  df <- assay(td)
+  d <- as.data.frame(t(df))
+  print(paste(name,": ", d['TCGA-2A-A8VL','SSX9']))
+
+}
+
+
+```
+
+
+
+
+
+```{r, label='extract-both-experiment-data', eval=FALSE}
+rel_experiments <-
+  subsetByAssay(study.all_data,
+                 c('mrna_seq_v2_rsem_zscores_ref_diploid_samples', 'cna'))
+names(rel_experiments) <- c('mrna', 'cna')
+rel_experiments
+
+experiment_df <- wideFormat(
+  rel_experiments,
+  colDataCols = c(
+    "PATIENT_ID",
+    "PATH_N_STAGE",
+    "NEW_TUMOR_EVENT_AFTER_INITIAL_TREATMENT",
+    "PATH_T_STAGE",
+    "PRIOR_DX",
+    "RADIATION_THERAPY",
+    "AGE"
+  ),
+  collapse = "_"
+)
+
+```
+
+
+```{r, label='difference-between-published-data', eval=FALSE}
+
+ref_names <- names(ref_data)
+exp_names <- names(experiment_df)
+
+test_vec <- c('a', 'b','c')
+
+exp_upper <- unname(sapply(exp_names, toupper))
+ref_upper <- unname(sapply(ref_names, toupper))
+
+diff_names <- unname(setdiff.Vector(ref_names, exp_names))
+diff_upper <- unname(setdiff.Vector(ref_upper, exp_upper))
+
+in_exp <- intersect.Vector(diff_names, exp_names)
+length(in_exp)
+
+in_exp_upper <- intersect.Vector(diff_upper, exp_upper)
+length(in_exp_upper)
+
+in_ref <- intersect.Vector(diff_names, ref_names)
+in_ref[1:3]
+ref_data[1,in_ref[1:3]]
+length(in_ref)
+
+in_ref_upper <- intersect.Vector(diff_upper, ref_upper)
+length(in_ref_upper)
+in_ref_upper[1:3]
+
+grep('*CXORF67',ref_names, ignore.case =TRUE, value = TRUE)
+grep('*CXORF67*',exp_names, ignore.case =TRUE, value = TRUE)
+
+
+
+clean_diff <- unname(sapply(in_ref,function(x) gsub('^M_', '', x)))
+clean_diff[1:3]
+clean_in_exp <- intersect.Vector(exp_names, clean_diff)
+length(clean_in_exp)
+grep('^CX', exp_names, value = TRUE)
+
+
+
+```
+
+
+
+```{r, label="get-cna-data", eval=FALSE}
+cna_subset <- subsetByAssay(study.all_data, 'cna')
+names(cna_subset) <- c("cna")
+
+cna.data <- wideFormat(
+  cna_subset,
+  colDataCols = patientCols,
+  check.names = TRUE,
+  collapse = "_"
+)
+
+cna.data[1,1:3]
+cna.df <- as.data.frame(cna.data)
+cna.df[1,patientCols]
+cna.df <- cna.df[,c(patientCols, setdiff(names(cna.df), patientCols))]
+cna.df <- cna.df[,!names(cna.df) %in% c('primary')]
+cna.df[1,1:10]
+cna.df.non_num_cols <- patientCols
+cna.df.num_cols <- unname(setdiff(names(cna.df), patientCols))
+
+cols_to_keep <- colSums(cna.df[,cna.df.num_cols])!=0
+cna.df <- cna.df[, c(cna.df.non_num_cols, cna.df.num_cols[cols_to_keep])]
+
+dim(cna.data)[2]-length(patientCols)
+dim(cna.df)[2]-length(patientCols)
+
+
+```
+
+
+
+
+```{r, label="get-mrna-data", eval=TRUE}
+
+mrna_subset <- subsetByAssay(study.all_data, 'mrna_seq_v2_rsem_zscores_ref_diploid_samples')
+names(mrna_subset) <- c("mrna")
+
+mrna.data <- wideFormat(
+  mrna_subset,
+  colDataCols = patientCols,
+  check.names = TRUE,
+  collapse = "_"
+)
+
+mrna.data[1,1:3]
+mrna.df <- as.data.frame(mrna.data)
+mrna.df[1,patientCols]
+mrna.df <- mrna.df[,c(patientCols, setdiff(names(mrna.df), patientCols))]
+mrna.df <- mrna.df[,!names(mrna.df) %in% c('primary')]
+mrna.df[1,1:10]
+mrna.df.non_num_cols <- patientCols
+mrna.df.num_cols_original <- unname(setdiff(names(mrna.df), patientCols))
+length(mrna.df.num_cols_original)
+
+mrna.df <- mrna.df[, colSums(is.na(mrna.df))!= nrow(mrna.df)]
+mrna.df.num_cols <- unname(setdiff(names(mrna.df), patientCols))
+
+dim(mrna.data)[2] - length(patientCols)
+ncol(mrna.df) - length(patientCols)
+
+
+
+rm(study.all_data)
+
+```
+
+
+```{r label='step1-display-patient-data'}
+
+table(mrna.data$PATH_N_STAGE)
+
+```
+
+```{r, label='impute-means-mrna', eval=TRUE}
+# # https://www.codingprof.com/how-to-replace-missing-values-with-the-minimum-in-r/
+
+mrna.df[mrna.df$PATIENT_ID %in% c('TCGA-EJ-A65B','TCGA-EJ-A65D'), 'mrna_SSX9']
+
+for(c_name in mrna.df.num_cols) {
+  mrna.df[, c_name][is.na(mrna.df[, c_name])] <-
+    mean(mrna.df[, c_name], na.rm = TRUE)
+}
+
+mrna.df[mrna.df$PATIENT_ID %in% c('TCGA-EJ-A65B','TCGA-EJ-A65D'), 'mrna_SSX9']
+
+
+```
+
+```{r, label='data-cleanup-remove-cols-with-0-variance', eval=FALSE}
+# https://rpubs.com/Mentors_Ubiqum/Zero_Variance
+
+ref_names <- names(ref_data)
+ref_mrna <- startsWith(ref_names, 'M_')
+ref_m_names <- ref_names[ref_mrna]
+ref_m_names[1]
+table(ref_mrna)
+ref_test <- ref_data[ref_m_names]
+dim(ref_test)
+ref_test <- ref_test[, colSums(is.na(ref_test)) != nrow(ref_test)]
+ref_test
+
+for (i in 1:ncol(ref_test)) {
+  ref_test[, i][is.na(ref_test[, i])] <-
+    mean(ref_test[, i], na.rm = TRUE)
+}
+
+which(apply(ref_test, 2, var) == 0)
+
+test <- apply(mrna.df[, mrna.df.num_cols], 2, var)
+test_o <- order(test, decreasing = TRUE)
+test[test_o[1]]
+
+nonvar_cols <- which(apply(test[mrna.df.num_cols], 2, var) != 0)
+length(nonvar_cols)
+
+
+```
+
+
+
+```{r, label='re-structure-data'}
+library(tidyr)
+library(data.table)
+library(Biobase)
+library(caret)
+
+set.seed(118)
+# https://stat.ethz.ch/pipermail/bioconductor/2013-October/055495.html
+
+convert_to_expressionset <- function(df, info_cols) {
+  patient_data <- df[,info_cols]
+  rownames(df) <- df$PATIENT_ID
+  df <- df[,!(names(df) %in% info_cols)]
+  mt <- t(df)
+  rownames(patient_data)<-patient_data$PATIENT_ID
+  pd <- new("AnnotatedDataFrame", data = patient_data)
+  mrna <- ExpressionSet(assayData = as.matrix(mt), phenoData  = pd)
+  return(mrna)
+}
+
+working <- mrna.df[!is.na(mrna.df$PATH_N_STAGE),]
+working <- working[working$PATH_N_STAGE %in% c("N0", "N1"),]
+
+working$PATH_N_STAGE_FAC <- as.numeric(sapply(working$PATH_N_STAGE,function(x) gsub("N",'',x)))
+
+samp = createDataPartition(as.factor(working$PATH_N_STAGE),
+                           p = 0.8,
+                           list = F)
+
+mrna.train <- working[samp, ]
+mrna.test <-  working[-samp, ]
+
+mrna <- convert_to_expressionset(working, c(patientCols, 'PATH_N_STAGE_FAC'))
+mrna
+
+mrna.train <- convert_to_expressionset(mrna.train, c(patientCols, 'PATH_N_STAGE_FAC'))
+mrna.test <- convert_to_expressionset(mrna.test, c(patientCols, 'PATH_N_STAGE_FAC'))
+
+
+dim(mrna)
+dim(mrna.train)
+dim(mrna.test)
+table(mrna$PATH_N_STAGE)
+table(mrna.train$PATH_N_STAGE)
+table(mrna.test$PATH_N_STAGE)
+
+
+```
+
+
+
+```{r, label='cor-variables', eval=T}
+# https://stackoverflow.com/questions/19113181/removing-na-in-correlation-matrix
+library(caret)
+
+mrna.cor <-cor(t(exprs(mrna.train)))
+mrna.cor[1:3,1:3]
+
+drop <- findCorrelation(mrna.cor , cutoff = 0.9)
+r <- mrna.train[-drop, ]
+dims(r)
+rm(mrna.cor)
+
+cormrna <- apply(exprs(r), 1, function(x) cor(x, r$PATH_N_STAGE_FAC))
+
+o<-order(abs(cormrna))
+max(cormrna)
+min(cormrna)
+
+end<-length(o)
+start <- end-9
+featureNames(r)[o[start:end]]
+
+
+
+```
+
+
+
+```{r, label='princomp-like-islr', fig.height=6, fig.width=12}
+# dim(t(exprs(mrna.train)))
+setwd("C:/Users/ianch/GeorgeMason/binf702/r_code/binf702/finalProject/presentation")
+pr.out=prcomp(t(exprs(mrna.train)) , scale=TRUE)
+
+Cols=function (vec){
+ cols=rainbow(length(unique(vec)))
+ return(cols[as.numeric (as.factor(vec))])
+}
+
+
+plot(pr.out)
+
+pve =100*pr.out$sdev ^2/sum(pr.out$sdev ^2)
+
+png(filename ="SCREE_PCA.png", width = 1200, height = 600) 
+
+par(mfrow = c(1, 2))
+plot(
+  pve ,
+  type = "o",
+  ylab = "PVE",
+  xlab = " Principal Component ",
+  col = "blue",
+  cex=1.5 
+)
+plot(
+  cumsum(pve),
+  type = "o",
+  ylab = "Cumulative PVE",
+  xlab = "
+Principal Component ",
+col = "brown3",
+cex=1.5 
+)
+dev.off()
+
+png(filename ="PCA_first4.png" )
+
+par(mfrow = c(2, 2))
+plot(
+  pr.out$x[, 1:2],
+  col = Cols(mrna.train$PATH_N_STAGE),
+  pch = 19,
+  xlab = "Z1",
+  ylab = "Z2"
+)
+plot(
+  pr.out$x[, c(1, 3)],
+  col = Cols(mrna.train$PATH_N_STAGE),
+  pch = 19,
+  xlab = "Z1",
+  ylab = "Z3"
+)
+plot(
+  pr.out$x[, c(2:3)],
+  col = Cols(mrna.train$PATH_N_STAGE),
+  pch = 19,
+  xlab = "Z2",
+  ylab = "Z3"
+)
+plot(
+  pr.out$x[, c(3, 4)],
+  col = Cols(mrna.train$PATH_N_STAGE),
+  pch = 19,
+  xlab = "Z3",
+  ylab = "Z4"
+)
+# dev.off()
+
+
+
+
+top_50_pc1 <- rownames(data.frame(sort(abs(pr.out$rotation[,"PC1"]), decreasing=TRUE)[1:50]))
+top_50_pc2 <- rownames(data.frame(sort(abs(pr.out$rotation[,"PC2"]), decreasing=TRUE)[1:50]))
+top_50_pc3 <- rownames(data.frame(sort(abs(pr.out$rotation[,"PC3"]), decreasing=TRUE)[1:50]))
+top_50_pc4 <- rownames(data.frame(sort(abs(pr.out$rotation[,"PC4"]), decreasing=TRUE)[1:50]))
+
+
+i<-1
+data<- t(exprs(mrna.train['mrna_SPAG1']))
+fac <-mrna.train$PATH_N_STAGE
+
+boxplot(
+  data ~ mrna.train$PATH_N_STAGE,
+  cex.lab = 1.5,
+  main = 'mrna_SPAG1',
+  xlab = "Golub Factor",
+  ylab = "Gene Expression",
+  col = c("purple", "green")
+)
+stripchart(t(exprs(mrna.train['mrna_SPAG1'])) ~ fac, # values
+main='mrna_SPAG1',
+method="jitter", # add random horizontal jitter
+cex.lab=2.5, # make axis labels big
+vertical = TRUE, # boxplots vertical
+cex.lab=1.5, # make axis labels big
+col=c("red", "darkgreen"),
+xlab="Path N Stage",
+ylab='mrna_SPAG1')
+
+
+```
+
+
+
+```{r}
+library(ROCR)
+
+png(filename ="PCA_2_nd.png",width = 800, height = 400)
+
+par(mfrow = c(2, 2))
+
+for(i in c(1:4)){
+pred <- prediction(t(exprs(mrna.train[top_50_pc2[i],])), mrna.train$PATH_N_STAGE)
+perf <- performance(pred, "tpr", "fpr" )
+plot(perf,
+          cex=1.5,
+     lwd=4,
+     col="magenta",
+     main=top_50_pc2[i]
+     )
+}
+dev.off()
+
+```
+
+
+
+```{r}
+library(ROCR)
+
+par(mfrow = c(2, 2))
+signif <- c("mrna_SPAG1", "mrna_PLEKHF2", "mrna_RALGPS1", "mrna_OMP", "mrna_CTNNAL1", "mrna_ZBTB34", "mrna_ODF2", "mrna_FKBP15", "mrna_GOLGA1")
+
+for(i in c(1:4)){
+pred <- prediction(t(exprs(mrna.train[signif[i]])), mrna.train$PATH_N_STAGE)
+perf <- performance(pred, "tpr", "fpr" )
+plot(perf,
+     lwd=4,
+     col="magenta",
+     main=signif[i])
+}
+
+
+
+```
+
+
+
+```{r, label='PCAtools-test-mrna', eval=FALSE}
+library(PCAtools)
+# https://bioconductor.org/packages/release/bioc/vignettes/PCAtools/inst/doc/PCAtools.html
+
+t <- mrna.train@phenoData
+t1 <- as(t, 'data.frame')
+
+p <- pca(t(exprs(mrna.train)), metadata=t1, removeVar = 0.1)
+
+var <-getVars(p)
+
+
+
+screeplot(p, axisLabSize = 18, titleLabSize = 22, components = getComponents(p, 1:15))
+ which(cumsum(p$variance) > 80)[1]
+screeplot(p, components = getComponents(p, 1:30),
+    hline = 80, vline = 27, axisLabSize = 14, titleLabSize = 20,
+    returnPlot = FALSE) +
+    geom_label(aes(20, 80, label = '80% explained variation', vjust = -1, size = 8))
+?aes
+
+
+
+biplot(
+  p,
+  colby = "PATH_N_STAGE",
+  xlim = c(-35,0),
+  ylim = c(-10,25), 
+  max.overlaps = 500,
+  lab = NULL
+)
+
+
+
+
+horn <- parallelPCA(exprs(mrnaSp))
+horn$n
+
+elbow <- findElbowPoint(p$variance)
+elbow
+screeplot(p,
+          components = getComponents(p, 1:20),
+          vline = c(horn$n, elbow)) +
+  
+  geom_label(aes(
+    x = horn$n + 1,
+    y = 50,
+    label = 'Horn\'s',
+    vjust = -1,
+    size = 8
+  )) +
+  geom_label(aes(
+    x = elbow + 1,
+    y = 50,
+    label = 'Elbow method',
+    vjust = -1,
+    size = 8
+  ))
+
+
+  
+```
+
+
+
+```{r, label='princomp-mrna-like-golub'}
+
+pca <- princomp(exprs(mrna.train), center=TRUE, scale = TRUE)
+
+o <- order(pca$scores[,3])
+top_10_names <- featureNames(mrna.train)[o[1:10]]
+
+par(mfrow = c(2, 2))
+
+for(i in c(1:4)){
+pred <- prediction(t(exprs(mrna.train[top_10_names[1],])), mrna.train$PATH_N_STAGE)
+perf <- performance(pred, "tpr", "fpr" )
+plot(perf,
+     lwd=4,
+     col="magenta",
+     main=top_10_names[i])
+}
+
+```
+
+
+```{r, label='histogram'}
+
+
+gene<-'mrna_BRAP'
+df <- data.frame(gene=exprs(mrna)[gene,], PATH_N=mrna$PATH_N_STAGE)
+
+
+ggplot(df, aes(x=gene, fill=PATH_N))+ geom_histogram()+ggtitle(gene)
+
+gene<-'mrna_SPAG1'
+df <- data.frame(gene=exprs(mrna)[gene,], PATH_N=mrna$PATH_N_STAGE)
+
+ggplot(df, aes(x=gene, fill=PATH_N))+ geom_histogram(binwidth=.5 ,alpha=.5, position="identity")+ggtitle(gene)
+
+
+```
+
+
+
+
+
+```{r, label='pca-tutorial', eval=FALSE}
+# https://www.benjaminbell.co.uk/2018/02/principal-components-analysis-pca-in-r.html
+
+p <- prcomp(t(exprs(mrnaSp)), scale=TRUE)
+p$x[1:3, 1:3]
+var_explained = p$sdev^2 / sum(p$sdev^2)
+
+length(var_explained)
+
+
+# s <- summary(p)
+stats::screeplot(p)
+# stats::biplot(p)
+?stats::biplot
+
+stats::screeplot(p, type="lines")
+stats::screeplot(p)
+plot(cumsum(var_explained), xlab = "Principal Component",
+              ylab = "Cumulative Proportion of Variance Explained",
+              type = "b")
+
+
+
+library(ggplot2)
+
+qplot(c(1:337), var_explained) + 
+  geom_line() + 
+  xlab("Principal Component") + 
+  ylab("Variance Explained") +
+  ggtitle("Scree Plot") +
+  ylim(0, 0.35)
+
+
+
+
+```
+
+
+
+```{r, label='anova-feature-reduction' }
+
+anova.pValue <- apply(exprs(mrna.train), 1, function(x) anova(lm(x ~ mrna.train$PATH_N_STAGE))$Pr[1])
+sum(anova.pValue<0.05)
+
+
+
+mrnaSp <- mrna.train[anova.pValue<0.05]
+mrna
+
+dims(mrnaSp)
+
+```
+
+
+
+```{r, label='heatmap'}
+BiocManager::install("ComplexHeatmap")
+library(ComplexHeatmap)
+
+```
+
+
+```{r, eval=F}
+
+min(cor(exprs(mrnaSp)))
+eigen(cor(exprs(mrnaSp)))$values[1:5]
+
+data <- exprs(mrnaSp); p <- ncol(mrnaSp); n <- nrow(mrnaSp) ; nboot<-1000
+eigenvalues <- array(dim=c(nboot,p))
+
+for (i in 1:nboot) {
+  dat.star <- data[sample(1:n, replace = TRUE), ]
+  eigenvalues[i, ] <- eigen(cor(dat.star))$values
+}
+
+
+for (j in 1:5)
+  print(quantile(eigenvalues[, j], c(0.025, 0.975)))
+
+
+
+
+
+pca <- princomp(exprs(mrnaSp), center = TRUE, cor=TRUE, scores=TRUE)
+
+summary(pca)
+ggbiplot(pca)
+
+o <- order(pca$scores[,2])
+on <-  rownames(mrnaSp)[o]
+grep('mrna_SPAG1',on)
+?grep
+'mrna_SPAG1' %in% rownames(mrnaSp)
+
+
+```
+
+
+
+
+```{r, label='classification-tree'}
+library(rpart)
+library(rpart.plot)
+
+names <-
+  featureNames(mrnaSp) # value used in paper
+mraNames <- mrna.train[names]
+
+probeData <- as.matrix(exprs(mraNames))
+row.names(probeData) <- unlist(names)
+
+diagnosed <- factor(mraNames$PATH_N_STAGE)
+
+rpartFit <- rpart(diagnosed ~ ., data = data.frame(t(probeData)))
+
+prp(
+  rpartFit,
+  branch.lwd = 4,
+  branch.col = "blue",
+  extra = 101
+)
+
+# dev.copy2eps(device=x11,file="rpartOnALLB123.eps")
+rpartPredict <- predict(rpartFit, type = "class")
+table(rpartPredict, diagnosed)
+
+predicted.class <- predict(rpartFit, type = "class")
+predicted.probabilities <- predict(rpartFit, type = "prob")
+out <- data.frame(predicted.probabilities,
+                  predicted.class,
+                  diagnosis = factor(mraNames$PATH_N_STAGE))
+print(out, digits = 2)
+# test set
+rpart.predictor.v <- predict(rpartFit,mrna.test, type="class")
+test_diagnosed <- factor(mrna.test$PATH_N_STAGE)
+table(rpart.predictor.v,test_diagnosed)
+                 
+
+
+
+```
+
+
+
+```{r, label='random-forest-MRNASP'}
+
+library(randomForest)
+names <-
+  featureNames(mrnaSp) # value used in paper
+mraNames <- mrna.train[names]
+
+probeData <- as.matrix(exprs(mraNames))
+row.names(probeData) <- unlist(names)
+
+Y <- factor(mrnaSp$PATH_N_STAGE);
+X <- t(probeData)
+rf1 <- randomForest(X, Y, ntree = 1000, importance=TRUE, proximity=TRUE)
+
+round(importance(rf1), 2)
+importance(rf1, type=1)
+
+feat_imp_df <- importance(rf1) %>% 
+    data.frame() %>% 
+    mutate(feature = row.names(.)) 
+
+rf1
+hist(treesize(rf1),
+     main = "No. of Nodes for the Trees",
+     col = "green")
+
+
+png(filename ="Random_Forest_varimp.png",width = 800, height = 600)
+
+varImpPlot(rf1,
+           n.var = 20,
+           pch=19,
+           main='RF - Variables of Importance',
+           col="red",
+           gcolor="blue",
+           lcolor="darkgreen")
+
+dev.off()
+
+
+i_scores <- varImp(rf1, conditional=TRUE)
+i_scores <- i_scores %>% tibble::rownames_to_column("var") 
+i_scores$var<- i_scores$var %>% as.factor()
+
+
+o<-order(abs(t[,2]))
+rownames(t)[o[1]]
+
+
+rf1$confusion
+y_pred = predict(rf1, newdata = t(exprs(mrna.test)))
+table(mrna.test$PATH_N_STAGE, y_pred)
+
+library(randomForestExplainer)
+# https://htmlpreview.github.io/?https://github.com/geneticsMiNIng/BlackBoxOpener/blob/master/randomForestExplainer/inst/doc/randomForestExplainer.html
+
+importance_frame <- measure_importance(rf1)
+rownames(importance_frame)<-importance_frame$variable
+o<-order(importance_frame$p_value, decreasing = FALSE)
+fi <-rownames(importance_frame)[o[1:30]]
+fi[1:10]
+
+
+png(filename ="RF_probe_top_10_ROC.png",width = 400, height = 400)
+
+par(mfrow = c(2, 2))
+
+for(i in c(1:4)){
+pred <- prediction(t(exprs(mrna.train[fi[i]])), mrna.train$PATH_N_STAGE)
+perf <- performance(pred, "tpr", "fpr" )
+plot(perf,
+     lwd=4,
+     col="magenta",
+     main=fi[i])
+}
+
+dev.off()
+
+
+```
+
+
+
+```{r, label='random-forest-FULL-MRNA'}
+
+
+names <-
+  featureNames(mrna.train) # value used in paper
+mraNames <- mrna.train[names]
+
+probeDataALL <- as.matrix(exprs(mraNames))
+row.names(probeDataALL) <- unlist(names)
+
+
+
+Y <- factor(mrna.train$PATH_N_STAGE);
+X <- t(probeDataALL)
+rf1 <- randomForest(X, Y, ntree = 1000, importance=TRUE, proximity=TRUE)
+
+round(importance(rf1), 2)
+importance(rf1, type=1)
+
+feat_imp_df <- importance(rf1) %>% 
+    data.frame() %>% 
+    mutate(feature = row.names(.)) 
+
+rf1
+hist(treesize(rf1),
+     main = "No. of Nodes for the Trees",
+     col = "green")
+
+
+png(filename ="Random_Forest_varimp_all.png",width = 800, height = 600)
+
+t<-varImpPlot(rf1,
+           n.var = 20,
+           pch=19,
+           main='RF - Variables of Importance',
+           col="red",
+           gcolor="blue",
+           lcolor="darkgreen")
+
+dev.off()
+
+
+i_scores <- varImp(rf1, conditional=TRUE)
+i_scores <- i_scores %>% tibble::rownames_to_column("var") 
+i_scores$var<- i_scores$var %>% as.factor()
+
+
+o<-order(abs(i_scores[,2]))
+rownames(t)[o[1:10]]
+
+
+rf1$confusion
+y_pred = predict(rf1, newdata = t(exprs(mrna.test)))
+table(mrna.test$PATH_N_STAGE, y_pred)
+
+library(randomForestExplainer)
+# https://htmlpreview.github.io/?https://github.com/geneticsMiNIng/BlackBoxOpener/blob/master/randomForestExplainer/inst/doc/randomForestExplainer.html
+
+importance_frame <- measure_importance(rf1)
+rownames(importance_frame)<-importance_frame$variable
+o<-order(importance_frame$p_value, decreasing = FALSE)
+fi <-rownames(importance_frame)[o[1:20]]
+
+png(filename ="RF_probe_all_10_ROC.png",width = 400, height = 400)
+
+par(mfrow = c(2, 2))
+
+for(i in c(1:4)){
+pred <- prediction(t(exprs(mrna.train[fi[i]])), mrna.train$PATH_N_STAGE)
+perf <- performance(pred, "tpr", "fpr" )
+plot(perf,
+     lwd=4,
+     col="magenta",
+     main=fi[i])
+}
+
+dev.off()
+
+```
+
+
+
+```{r, label='kmeans'}
+library(ggpubr)
+library(factoextra)
+# https://www.datanovia.com/en/blog/k-means-clustering-visualization-in-r-step-by-step-guide/
+
+data <- data.frame(t(exprs(mrna.train[fi[1]])))
+
+n_factor <- factor(mrna.train$PATH_N_STAGE, labels= c("N0","N1"))
+t<-t(exprs(mrna.train[fi[1]]))
+
+stripchart(t~n_factor, pch=as.numeric(n_factor), method="jitter")
+
+cl <- kmeans(data, centers=2)
+table(cl$cluster,n_factor)
+
+stripchart(golub[zyxin,]~factor(cl$cluster), method="jitter", col=1:2)
+points(x=cl$centers[1], y=1, col = 1, pch = 8, cex=2)
+points(x=cl$centers[2], y=2, col = 2, pch = 8, cex=2)
+
+
+
+plot(
+  t,
+  pch = as.numeric(mrna.train$PATH_N_STAGE_FAC) + 14,
+  col = as.numeric(mrna.train$PATH_N_STAGE_FAC) + 1,
+  xlab = 'Patient Index'
+)
+
+
+
+cl <- kmeans(t(exprs(mrna.train[forrest_importance[1],])), 2)
+
+
+
+plot(t, 
+     col = cl$cluster,
+     pch = as.numeric(mrna.train$PATH_N_STAGE_FAC) + 15,
+     xlab = 'patient index'
+     )
+
+legend(
+  "bottomright",
+  legend = c("N0", "N1"),
+  pch = 16:17
+)
+
+
+
+
+```
+
+
+
+
+```{r, label='kmeans-mrna-SMALL'}
+
+sd.data=scale(exprs(mrna.train))
+km.out=kmeans(sd.data , 2, nstart =20)
+km.clusters =km.out$cluster
+
+
+t_c <- c("mrna_MAP6D1", "mrna_SPOCK2")
+
+table(mrna.train$PATH_N_STAGE, km.out$cluster)
+
+plot(mrna.train.features[,t_c], col = cl$cluster)
+points(cl$centers, col = 1:2, pch = 8, cex=2)
+
+grep('RALGPS1', feat_names, value = TRUE)
+
+
+```
+
+
+```{r, label='kmeans-mrna-SMALL'}
+feat_names <- names(train_features)[!(names(train_features) %in% patientCols)]
+
+t_c <- c("mrna_MAP6D1", "mrna_SPOCK2")
+t_c <- c("mrna_SPAG1",'mrna_RALGPS1')
+t_c <- c("mrna_SPAG1","mrna_HIST1H3J")
+cl <- kmeans(t(exprs(mrna.train[t_c])), 2)
+table(cl$cluster,t(mrna.train$PATH_N_STAGE))
+
+
+plot(t(exprs(mrna.train[t_c])), col = cl$cluster)
+
+data <- data.frame(t(exprs(mrna.train[t_c,])))
+
+png(filename ="Kmeans_clustering.png",width = 400, height = 400)
+plot(data, col = cl$cluster)
+points(cl$centers, col = 1:2, pch = 8, cex=2)
+dev.off()
+
+```
+
+
+
+
+```{r, label='from-notebook'}
+signif <- c("mrna_SPAG1", "mrna_PLEKHF2", "mrna_RALGPS1", "mrna_OMP", "mrna_CTNNAL1", "mrna_ZBTB34", "mrna_ODF2", "mrna_FKBP15", "mrna_GOLGA1")
+
+train_features[1, c("mrna_SPAG1", "mrna_PLEKHF2", "mrna_RALGPS1", "mrna_OMP", "mrna_CTNNAL1", "mrna_ZBTB34", "mrna_ODF2", "mrna_FKBP15", "mrna_GOLGA1")]
+class(train_features)
+
+
+```
+
+
+```{r, label='naive-bayes'}
+library(naivebayes)
+library(caret)
+# library(tidyverse)
+# detach("package:tidyverse", unload=TRUE)
+
+# gnb <- gaussian_naive_bayes(x = t(exprs(mrna)), y = mrna$PATH_N_STAGE)
+summary(gnb)
+
+X <- t(exprs(mrnaSp))
+Y <- mrnaSp$PATH_N_STAGE
+
+Grid = data.frame(usekernel = TRUE,
+                  laplace = 0,
+                  adjust = 1)
+
+train_control <- trainControl(method = "cv",
+                              number = 3)
+
+mdl = nb.m1 <- train(
+  x = t(exprs(mrnaSp)),
+  y = mrnaSp$PATH_N_STAGE,
+  method = "nb",
+  trControl = train_control
+)
+
+confusionMatrix(mdl)
+?varImp
+v <- varImp(mdl)
+head(v$importance)
+nrow(varImp(mdl)$importance)
+
+t<-varImp(mdl)$importance %>% 
+  as.data.frame()
+
+ts <- t[,1]
+
+o<- order(ts, decreasing = TRUE)
+o_n <- rownames(t)[o[1:10]]
+o_n[1:2]
+
+png(filename ="RF_NB_TOP_4_ROC.png",width = 400, height = 400)
+
+par(mfrow = c(2, 2))
+
+for(i in c(1:4)){
+pred <- prediction(t(exprs(mrna.train[o_n[i]])), mrna.train$PATH_N_STAGE)
+perf <- performance(pred, "tpr", "fpr" )
+plot(perf,
+     lwd=4,
+     col="magenta",
+     main=o_n[i])
+}
+
+dev.off()
+
+
+
+
+
+search_grid <- expand.grid(
+  usekernel = c(TRUE, FALSE),
+  fL = 0:5,
+  adjust = seq(0, 5, by = 1)
+)
+
+# train model
+nb.m2 <- train(
+  x = X,
+  y = Y,
+  method = "nb",
+  trControl = train_control,
+  tuneGrid = search_grid,
+  preProc = c("BoxCox", "center", "scale", "pca")
+  )
+
+confusionMatrix(nb.m2)
+
+plot(nb.m2)
+
+
+```
+
+
+

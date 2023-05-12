@@ -1,0 +1,711 @@
+---
+title: "Bioinformatics analysis of the genes involved in the extension of prostate cancer to adjacent lymph nodes"
+author: "Ian Bates"
+date: "4/30/2022"
+output:
+  word_document: default
+mainfont: Times New Roman
+
+csl: cell-numeric_no_access.csl
+bibliography: bibliography.bib
+
+---
+
+## Introduction
+
+
+Prostate cancer is incredibly common in the United States. Outside of skin cancer, this cancer is the most frequently diagnosed cancer in the United States @blackwelderProstateCancerScreening2019. It is also the third leading cause of caner related deaths @blackwelderProstateCancerScreening2019. It has been estimated that about 9% of prostate cancers can be attributed to heredity @hemminkiFamilialRiskFamilial2012, which implies that absence of familial history of prostate cancer does not negate the need for sufficient testing.
+
+The screening for prostate cancer traditionally involved digital rectal exams; but recently there has been a test used, Prostate-Specific Antigen (PSA) @ProstateSpecificAntigen, which involves sampling for an antigen found in prostatic tissue. This test has significant drawbacks due to a sensitivity of 20.5% and specificity of 93.8% for histologically positive prostate specimens @barryEvaluatingElevatedScreening2015. PSA testing has a high false positives rates due to other factors such as prostatitis, ejaculation, trauma, and recent instrumentation. And these false positives can initiate treatments which can cause significant harm to healthy sexual function as well as continence.
+
+The goal of this study is to identify candidate genes that can serve as markers for future development of metastatic prostate cancers. The benefits identifying these genes is that we will be able to develop testing protocols that can identify the likely severity of their prostate cancer expression so that extreme treatments, such as prostatectomy and external beam radiation therapy can be avoided.
+
+To perform this analysis, I followed the this paper, titled “Bioinformatics analysis of the genes involved in the extension of prostate cancer to adjacent lymph nodes by supervised and unsupervised machine learning methods: The role of SPAG1 and PLEKHF2” @shamsaraBioinformaticsAnalysisGenes2020. I will utilize Naive Bayes and Random Forest unsupervised machine learning methods as well as leveraging ANOVA tests for feature reduction.
+
+
+```{r setup, include=FALSE}
+setwd("C:/Users/ianch/GeorgeMason/binf702/r_code/binf702/finalProject")
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(cache = TRUE)
+knitr::opts_chunk$set(warning = F)
+
+```
+
+
+```{r label='install-packages', eval=TRUE, include=FALSE}
+library(cBioPortalData)
+library(AnVIL)
+library(MultiAssayExperiment)
+library(GenomicRanges)
+library(SummarizedExperiment)
+library(RaggedExperiment)
+library(jsonlite)
+library(survival)
+library(survminer)
+
+library(curatedTCGAData)
+library(TCGAutils)
+library(SingleCellMultiModal)
+library(UpSetR)
+library(GenomicDataCommons)
+library(rjson)
+library(randomForest)
+
+library(ROCR)
+
+library(tidyr)
+library(data.table)
+library(Biobase)
+library(caret)
+
+library(rpart)
+library(rpart.plot)
+
+
+study.json <- fromJSON(file = 'study_info.json')
+patientCols <- c(
+  "PATIENT_ID",
+  "PATH_N_STAGE",
+  "NEW_TUMOR_EVENT_AFTER_INITIAL_TREATMENT",
+  "PATH_T_STAGE",
+  "PRIOR_DX",
+  "RADIATION_THERAPY",
+  "AGE"
+)
+study.json$name
+
+setwd("C:/Users/ianch/GeorgeMason/binf702/r_code/binf702/finalProject/presentation")
+```
+
+
+```{r, label='intialize-bioportal', warning=FALSE, message=FALSE, include=FALSE}
+cbio <- cBioPortal()
+
+cbio
+```
+
+
+
+```{r, label='intitalize-cache', warning=FALSE, message=FALSE, include=FALSE, eval=FALSE}
+
+cBioCache()
+
+setCache(
+  directory = tools::R_user_dir("cBioPortalData", "cache"),
+  verbose = TRUE,
+  ask = interactive()
+)
+
+```
+
+
+```{r, label='read-from-cache', include=FALSE}
+
+study.json$studyId
+
+study.all_data <- cBioDataPack(
+  study.json$studyId,
+  names.field = c("Hugo_Symbol", "Entrez_Gene_Id", "Gene"),
+  cleanup = TRUE,
+  ask = TRUE, 
+  use_cache = TRUE
+)
+study.all_data
+
+```
+
+
+
+
+```{r, label="get-mrna-data", eval=TRUE, include=FALSE}
+
+mrna_subset <- subsetByAssay(study.all_data, 'mrna_seq_v2_rsem_zscores_ref_diploid_samples')
+names(mrna_subset) <- c("mrna")
+
+mrna.data <- wideFormat(
+  mrna_subset,
+  colDataCols = patientCols,
+  check.names = TRUE,
+  collapse = "_"
+)
+
+mrna.data[1,1:3]
+mrna.df <- as.data.frame(mrna.data)
+mrna.df[1,patientCols]
+mrna.df <- mrna.df[,c(patientCols, setdiff(names(mrna.df), patientCols))]
+mrna.df <- mrna.df[,!names(mrna.df) %in% c('primary')]
+mrna.df[1,1:10]
+mrna.df.non_num_cols <- patientCols
+mrna.df.num_cols_original <- unname(setdiff(names(mrna.df), patientCols))
+length(mrna.df.num_cols_original)
+
+mrna.df <- mrna.df[, colSums(is.na(mrna.df))!= nrow(mrna.df)]
+mrna.df.num_cols <- unname(setdiff(names(mrna.df), patientCols))
+
+dim(mrna.data)[2] - length(patientCols)
+ncol(mrna.df) - length(patientCols)
+
+
+
+rm(study.all_data)
+
+```
+
+
+
+
+```{r, label='impute-means-mrna', eval=TRUE}
+# # https://www.codingprof.com/how-to-replace-missing-values-with-the-minimum-in-r/
+
+mrna.df[mrna.df$PATIENT_ID %in% c('TCGA-EJ-A65B','TCGA-EJ-A65D'), 'mrna_SSX9']
+
+for(c_name in mrna.df.num_cols) {
+  mrna.df[, c_name][is.na(mrna.df[, c_name])] <-
+    mean(mrna.df[, c_name], na.rm = TRUE)
+}
+
+mrna.df[mrna.df$PATIENT_ID %in% c('TCGA-EJ-A65B','TCGA-EJ-A65D'), 'mrna_SSX9']
+
+
+```
+
+
+
+
+
+
+```{r, label='re-structure-data', include=FALSE}
+
+set.seed(118)
+# https://stat.ethz.ch/pipermail/bioconductor/2013-October/055495.html
+
+convert_to_expressionset <- function(df, info_cols) {
+  patient_data <- df[,info_cols]
+  rownames(df) <- df$PATIENT_ID
+  df <- df[,!(names(df) %in% info_cols)]
+  mt <- t(df)
+  rownames(patient_data)<-patient_data$PATIENT_ID
+  pd <- new("AnnotatedDataFrame", data = patient_data)
+  mrna <- ExpressionSet(assayData = as.matrix(mt), phenoData  = pd)
+  return(mrna)
+}
+
+working <- mrna.df[!is.na(mrna.df$PATH_N_STAGE),]
+working <- working[working$PATH_N_STAGE %in% c("N0", "N1"),]
+
+working$PATH_N_STAGE_FAC <- as.numeric(sapply(working$PATH_N_STAGE,function(x) gsub("N",'',x)))
+
+samp = createDataPartition(as.factor(working$PATH_N_STAGE),
+                           p = 0.8,
+                           list = F)
+
+mrna.train <- working[samp, ]
+mrna.test <-  working[-samp, ]
+
+mrna <- convert_to_expressionset(working, c(patientCols, 'PATH_N_STAGE_FAC'))
+mrna
+
+mrna.train <- convert_to_expressionset(mrna.train, c(patientCols, 'PATH_N_STAGE_FAC'))
+mrna.test <- convert_to_expressionset(mrna.test, c(patientCols, 'PATH_N_STAGE_FAC'))
+
+
+dim(mrna)
+dim(mrna.train)
+dim(mrna.test)
+table(mrna$PATH_N_STAGE)
+table(mrna.train$PATH_N_STAGE)
+table(mrna.test$PATH_N_STAGE)
+
+
+```
+
+
+
+## Data and Pre-Processing
+
+The source of the data set used in this study was a TCGA data set of Prostate Adenocarcinoma (TCGA, PanCancer Atlas). I extracted the full suite of data from cBioPortal @ceramiCBioCancerGenomics2012. The object that returned from the api call in R was a MultiAssayExperiment. The challenge I initially faced was to determine which of the 14 different assay data sets was the one that was used in the study. After confirming against the source data provided in the file, I discovered the appropriate assay to use was the mrna_seq_v2_rsem_zscores_ref_diploid_samples. In this data, we have the mRNA expression of over 25k genes as well as the information relating to the spread of the cancer to the adjacent lymph nodes. In this study, patient with a tag of NO have cancer that did not spread to the adjacent lymph nodes and patients with a tag of N1 had cancer that spread to the adjacent lymph nodes.
+
+The next challenge was to transform the MultiAssayExperiment into a format that I could easily utilize for the subsequent analysis. All semester long, we have been working with the ALL data and this object is of the class ExpressionSet. The ExpressionSet class holds the experiment data in the form of an assay that can be accessed with the exprs() method. The patient information is also stored in a separate slot and can easily be used to identify the patient information related to a particular set of factors. There were many helpful steps and tutorials to help through Bioconductor @gentlemanBioconductorOpenSoftware2004.
+
+
+Following this step, I then removed samples where all of the values for the gene expressions were 0. Additionally, I removed all the patient data for those who’s status of N0/N1 was not known. At the end of this step, we had `r dim(mrna)[2]` patient records with a total of `r dim(mrna)[1]` gene expression features. This resulted in the following distribution of N0/N1 across the patients:
+
+
+```{r echo=TRUE}
+table(mrna$PATH_N_STAGE)
+```
+
+
+```{r, label='anova-feature-reduction' }
+
+anova.pValue <- apply(exprs(mrna.train), 1, function(x) anova(lm(x ~ mrna.train$PATH_N_STAGE))$Pr[1])
+sum(anova.pValue<0.05)
+
+
+
+mrnaSp <- mrna.train[anova.pValue<0.05]
+
+```
+
+## Feature Reduction
+
+I initially followed the methods of the paper to my detriment. The authors mentioned their use of Principle Component Analysis as a method of reducing the number of features. I spent quite a bit of time utilizing principle components and did not return any meaningful insights as to which features were of most importance. Dr. Solka reminded me that this is not the way in which to utilize PCA, so I will forgo the results of the PCA analysis and move to the other method of feature reduction: ANOVA tests.
+
+I tested the null hypothesis H0 of equal means for all the genes according to the ANOVA p-value. I kept those features which rejected the null with an alpha of 0.05. This led to a dramatic reduction of relevant features that number `r dim(mrnaSp)[1]`
+
+
+
+```{r, label='classification-tree', eval=FALSE, include=FALSE}
+
+names <-
+  featureNames(mrnaSp) # value used in paper
+mraNames <- mrna.train[names]
+
+probeData <- as.matrix(exprs(mraNames))
+row.names(probeData) <- unlist(names)
+
+diagnosed <- factor(mraNames$PATH_N_STAGE)
+
+rpartFit <- rpart(diagnosed ~ ., data = data.frame(t(probeData)))
+
+prp(
+  rpartFit,
+  branch.lwd = 4,
+  branch.col = "blue",
+  extra = 101
+)
+
+# dev.copy2eps(device=x11,file="rpartOnALLB123.eps")
+rpartPredict <- predict(rpartFit, type = "class")
+table(rpartPredict, diagnosed)
+
+predicted.class <- predict(rpartFit, type = "class")
+predicted.probabilities <- predict(rpartFit, type = "prob")
+out <- data.frame(predicted.probabilities,
+                  predicted.class,
+                  diagnosis = factor(mraNames$PATH_N_STAGE))
+print(out, digits = 2)
+# test set
+rpart.predictor.v <- predict(rpartFit,mrna.test, type="class")
+test_diagnosed <- factor(mrna.test$PATH_N_STAGE)
+table(rpart.predictor.v,test_diagnosed)
+                 
+
+```
+
+
+
+
+
+```{r, label='random-forest-MRNASP', include=FALSE, echo=FALSE}
+
+names_sp <-
+  featureNames(mrnaSp) # value used in paper
+mraNames_sp <- mrna.train[names_sp]
+
+probeData_sp <- as.matrix(exprs(mraNames_sp))
+row.names(probeData_sp) <- unlist(names_sp)
+
+Y_sp <- factor(mrna.train$PATH_N_STAGE);
+X_sp <- t(probeData_sp)
+rf1_sp <- randomForest(X_sp, Y_sp, ntree = 1000, importance=TRUE, proximity=TRUE)
+
+# round(importance(rf1), 2)
+# importance(rf1, type=1)
+
+feat_imp_df_sp <- importance(rf1_sp) %>% 
+    data.frame() %>% 
+    mutate(feature = row.names(.)) 
+
+# rf1
+# hist(treesize(rf1),
+#      main = "No. of Nodes for the Trees",
+#      col = "green")
+
+
+# png(filename ="Random_Forest_varimp.png",width = 800, height = 600)
+
+# varImpPlot(rf1_sp,
+#            n.var = 15,
+#            pch=19,
+#            main='RF - Variables of Importance',
+#            col="red",
+#            gcolor="blue",
+#            lcolor="darkgreen")
+
+# dev.off()
+
+
+i_scores_sp <- varImp(rf1_sp, conditional=TRUE)
+i_scores_sp <- i_scores_sp %>% tibble::rownames_to_column("var") 
+i_scores_sp$var<- i_scores_sp$var %>% as.factor()
+
+
+# o<-order(abs(t[,2]))
+# rownames(t)[o[1]]
+
+
+# rf1_sp$confusion
+y_pred = predict(rf1_sp, newdata = t(exprs(mrna.test)))
+# table(mrna.test$PATH_N_STAGE, y_pred)
+
+library(randomForestExplainer)
+# https://htmlpreview.github.io/?https://github.com/geneticsMiNIng/BlackBoxOpener/blob/master/randomForestExplainer/inst/doc/randomForestExplainer.html
+
+importance_frame_sp <- measure_importance(rf1_sp)
+rownames(importance_frame_sp)<-importance_frame_sp$variable
+o_sp<-order(importance_frame_sp$p_value, decreasing = FALSE)
+fi_sp <-rownames(importance_frame_sp)[o_sp[1:30]]
+# fi_sp[1:10]
+
+
+# png(filename ="RF_probe_top_10_ROC.png",width = 400, height = 400)
+
+# par(mfrow = c(2, 2))
+# 
+# for(i in c(1:4)){
+# pred <- prediction(t(exprs(mrna.train[fi[i]])), mrna.train$PATH_N_STAGE)
+# perf <- performance(pred, "tpr", "fpr" )
+# plot(perf,
+#      lwd=4,
+#      col="magenta",
+#      main=fi[i])
+# }
+
+# dev.off()
+
+
+```
+
+
+
+
+
+```{r, label='random-forest-plot-1', fig.height=8, fig.width=10, fig.cap="Fig 1: Variables of importance for the Random Forrest model using ANOVA reduced Features"}
+
+varImpPlot(rf1_sp,
+           n.var = 15,
+           pch=19,
+           main='RF - Variables of Importance',
+           col="red",
+           gcolor="blue",
+           lcolor="darkgreen")
+
+
+```
+
+Here we can see in this variable importance plot, we have 2 key outliers in the MeanDecreaseGini measurement of importance: “HIST1H3J” and “RALGPS1.”
+
+
+I then took the top 4 important features and produced the ROC curve for these features:
+
+```{r, label='random-forest-plot-2', fig.height=8, fig.width=8, fig.cap="Fig 2: ROC plot for top important variables under Random Forest"}
+
+varimp_names = c("mrna_LOC100272217", "mrna_LINC02347","mrna_HIST1H3J",  "mrna_RALGPS1")
+par(mfrow = c(2, 2))
+
+for(i in varimp_names){
+pred <- prediction(t(exprs(mrna.train[i])), mrna.train$PATH_N_STAGE)
+perf <- performance(pred, "tpr", "fpr" )
+plot(perf,
+     lwd=4,
+     col="magenta",
+     main=i)
+}
+
+```
+
+As we can see in Fig 2, the ROC Curves for the first 2 features of importance identified by the random forest classifier did not have a large area under the curve. But we we look at the next 2, for HIST1H3J and  RALGPS1, we see that the ROC Curves do appear to have a better area under the curve.
+
+In terms of prediction, the random forest as I set it up did not perform well on the training set, as shown in the confusion matrix, or when trained against new data:
+
+```{r}
+rf1_sp$confusion
+table(mrna.test$PATH_N_STAGE, y_pred)
+
+```
+
+
+
+
+
+```{r, label='random-forest-FULL-MRNA', eval=FALSE, include=FALSE}
+
+
+names <-
+  featureNames(mrna.train) # value used in paper
+mraNames <- mrna.train[names]
+
+probeDataALL <- as.matrix(exprs(mraNames))
+row.names(probeDataALL) <- unlist(names)
+
+
+
+Y <- factor(mrna.train$PATH_N_STAGE);
+X <- t(probeDataALL)
+rf1 <- randomForest(X, Y, ntree = 1000, importance=TRUE, proximity=TRUE)
+
+round(importance(rf1), 2)
+importance(rf1, type=1)
+
+feat_imp_df <- importance(rf1) %>% 
+    data.frame() %>% 
+    mutate(feature = row.names(.)) 
+
+rf1
+hist(treesize(rf1),
+     main = "No. of Nodes for the Trees",
+     col = "green")
+
+
+# png(filename ="Random_Forest_varimp_all.png",width = 800, height = 600)
+
+t<-varImpPlot(rf1,
+           n.var = 20,
+           pch=19,
+           main='RF - Variables of Importance',
+           col="red",
+           gcolor="blue",
+           lcolor="darkgreen")
+
+# dev.off()
+
+
+i_scores <- varImp(rf1, conditional=TRUE)
+i_scores <- i_scores %>% tibble::rownames_to_column("var") 
+i_scores$var<- i_scores$var %>% as.factor()
+
+
+o<-order(abs(i_scores[,2]))
+rownames(t)[o[1:10]]
+
+
+rf1$confusion
+y_pred = predict(rf1, newdata = t(exprs(mrna.test)))
+table(mrna.test$PATH_N_STAGE, y_pred)
+
+library(randomForestExplainer)
+# https://htmlpreview.github.io/?https://github.com/geneticsMiNIng/BlackBoxOpener/blob/master/randomForestExplainer/inst/doc/randomForestExplainer.html
+
+importance_frame <- measure_importance(rf1)
+rownames(importance_frame)<-importance_frame$variable
+o<-order(importance_frame$p_value, decreasing = FALSE)
+fi <-rownames(importance_frame)[o[1:20]]
+
+# png(filename ="RF_probe_all_10_ROC.png",width = 400, height = 400)
+
+par(mfrow = c(2, 2))
+
+for(i in c(1:4)){
+pred <- prediction(t(exprs(mrna.train[fi[i]])), mrna.train$PATH_N_STAGE)
+perf <- performance(pred, "tpr", "fpr" )
+plot(perf,
+     lwd=4,
+     col="magenta",
+     main=fi[i])
+}
+
+# dev.off()
+
+```
+
+
+
+
+
+```{r, label='naive-bayes', include=F}
+library(naivebayes)
+library(caret)
+# library(tidyverse)
+# detach("package:tidyverse", unload=TRUE)
+
+# gnb <- gaussian_naive_bayes(x = t(exprs(mrna)), y = mrna$PATH_N_STAGE)
+# summary(gnb)
+
+X <- t(exprs(mrnaSp))
+Y <- mrnaSp$PATH_N_STAGE
+
+Grid = data.frame(usekernel = TRUE,
+                  laplace = 0,
+                  adjust = 1)
+
+train_control <- trainControl(method = "cv",
+                              number = 3)
+
+mdl = nb.m1 <- train(
+  x = t(exprs(mrnaSp)),
+  y = mrnaSp$PATH_N_STAGE,
+  method = "nb",
+  trControl = train_control
+)
+
+# confusionMatrix(mdl)
+# varImp(mdl)
+# head(v$importance)
+# nrow(varImp(mdl)$importance)
+
+t<-varImp(mdl)$importance %>% 
+  as.data.frame()
+
+ts <- t[,1]
+
+o<- order(ts, decreasing = TRUE)
+o_n <- rownames(t)[o[1:10]]
+# o_n[1:2]
+
+# png(filename ="RF_NB_TOP_4_ROC.png",width = 400, height = 400)
+
+# par(mfrow = c(2, 2))
+# 
+# for(i in c(1:4)){
+# pred <- prediction(t(exprs(mrna.train[o_n[i]])), mrna.train$PATH_N_STAGE)
+# perf <- performance(pred, "tpr", "fpr" )
+# plot(perf,
+#      lwd=4,
+#      col="magenta",
+#      main=o_n[i])
+# }
+
+# dev.off()
+
+
+search_grid <- expand.grid(
+  usekernel = c(TRUE, FALSE),
+  fL = 0:5,
+  adjust = seq(0, 5, by = 1)
+)
+
+# train model
+nb.m2 <- train(
+  x = X,
+  y = Y,
+  method = "nb",
+  trControl = train_control,
+  tuneGrid = search_grid,
+  preProc = c("BoxCox", "center", "scale", "pca")
+  )
+
+# confusionMatrix(nb.m2)
+
+
+
+```
+
+## Naive Bayes
+
+I then took the ANOVA reduced mrna samples and processed them throug the Naive Bayes Classifier to investigate other potential features of importance.  When the model was completed, I found the folowing variables of importance:
+
+```{r, label='nb-var-imp-data'}
+
+varImp(mdl)
+
+```
+
+Here again we saw HIST1H3J indicated as a highly important feature but was slightly behind the new feature SPAG1.
+
+
+I again took the top 4 and produced the ROC curves:
+
+```{r, label='naive-bayes-roc', fig.height=8, fig.width=8, fig.cap="Fig 3: ROC plot for top important variables under Naive Bayes"}
+par(mfrow = c(2, 2))
+
+for(i in c(1:4)){
+pred <- prediction(t(exprs(mrna.train[o_n[i]])), mrna.train$PATH_N_STAGE)
+perf <- performance(pred, "tpr", "fpr" )
+plot(perf,
+     lwd=4,
+     col="magenta",
+     main=o_n[i])
+}
+
+```
+
+Here, we see that both the SPAG1 and HIST1H3J have the largest area under the curve of the 4 variables. This is a good indicator that these could be markers for expansion into the lymph nodes.
+
+I saw similarly poor performance in the Naive Bayes Classifier in predicting the N0/N1 state of the new data:
+
+```{r, label='nb-confustion-matrix'}
+confusionMatrix(mdl)
+
+confusionMatrix(nb.m2)
+```
+
+## K-Means Clustering with good targets
+
+I then performed K means clustering using the 3 target's I identified: SPAG1, HIST1H3J, and RALGPS1.
+
+Firstly, we see the clustering of SPAG1 and HIST1H3J:
+
+```{r, label='kmeans-mrna-SMALL', eval=TRUE, include=TRUE, fig.height=8, fig.width=8, fig.cap="Fig 4: K-Means Clustering of SPAG1 and HIST1H3J"}
+
+t_c <- c("mrna_MAP6D1", "mrna_SPOCK2")
+t_c <- c("mrna_SPAG1",'mrna_RALGPS1')
+t_c <- c("mrna_SPAG1","mrna_HIST1H3J")
+cl <- kmeans(t(exprs(mrna.train[t_c])), 2)
+# table(cl$cluster,t(mrna.train$PATH_N_STAGE))
+
+
+# plot(t(exprs(mrna.train[t_c])), col = cl$cluster)
+
+data <- data.frame(t(exprs(mrna.train[t_c,])))
+
+# png(filename ="Kmeans_clustering.png",width = 400, height = 400)
+plot(data, col = cl$cluster) 
+points(cl$centers, col = 1:2, pch = 8, cex=2)
+# dev.off()
+
+```
+Then we have SPAG1 and RALGPS1:
+
+```{r, label='kmeans-mrna-SMALL', eval=TRUE, include=TRUE, fig.height=8, fig.width=8, fig.cap="Fig 5: K-Means Clustering of SPAG1 and RALGPS1"}
+
+t_c <- c("mrna_MAP6D1", "mrna_SPOCK2")
+t_c <- c("mrna_SPAG1",'mrna_RALGPS1')
+cl <- kmeans(t(exprs(mrna.train[t_c])), 2)
+# table(cl$cluster,t(mrna.train$PATH_N_STAGE))
+
+
+# plot(t(exprs(mrna.train[t_c])), col = cl$cluster)
+
+data <- data.frame(t(exprs(mrna.train[t_c,])))
+
+# png(filename ="Kmeans_clustering.png",width = 400, height = 400)
+plot(data, col = cl$cluster) 
+points(cl$centers, col = 1:2, pch = 8, cex=2)
+# dev.off()
+
+```
+
+And finally, HIST1H3J and RALGPS1
+
+
+```{r, label='kmeans-mrna-SMALL', eval=TRUE, include=TRUE, fig.height=8, fig.width=8, fig.cap="Fig 6: K-Means Clustering of HIST1H3J and RALGPS1"}
+
+t_c <- c("mrna_MAP6D1", "mrna_SPOCK2")
+t_c <- c("mrna_HIST1H3J",'mrna_RALGPS1')
+cl <- kmeans(t(exprs(mrna.train[t_c])), 2)
+# table(cl$cluster,t(mrna.train$PATH_N_STAGE))
+
+
+# plot(t(exprs(mrna.train[t_c])), col = cl$cluster)
+
+data <- data.frame(t(exprs(mrna.train[t_c,])))
+
+# png(filename ="Kmeans_clustering.png",width = 400, height = 400)
+plot(data, col = cl$cluster) 
+points(cl$centers, col = 1:2, pch = 8, cex=2)
+# dev.off()
+
+```
+ 
+ 
+ Of the 3 plots, it appears that the clustering of the SPAG1 and RALGPS1 appear to have the most defined features which could be used for classification.
+ 
+ 
+ ## Discussion
+ 
+ 
+ In reviewing the literature for SPAG1, RALGPS1, and HIST1H3J I discovered that these have been implicated in poor outcomes with respect to other cancers.  SPAG1 is sperm associated antigen 1, and has been reported as an overexpressed gene in squamous cell lung carcinoma with metastatic properties @boelensGenomicAberrationsSquamous2009
+ 
+ 
+ 

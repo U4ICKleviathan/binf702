@@ -1,0 +1,92 @@
+---
+title: "chapter_8_ASBUR"
+author: "Ian Bates"
+date: "4/3/2022"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1. Classification trees with the ALL data. Perform recursive partitioning with the rpart() function. Like Example 5, using the ALL data, we want to predict the diagnosis of B-cell state B1, B2, or B3 from the gene expressions. 
+```{r, warning=FALSE, message = FALSE}
+# BiocManager::install("hgu95av2.db")
+library(ALL)
+data(ALL)
+library("hgu95av2.db")
+library(rpart)
+library(rpart.plot)
+
+ALLB123 <- ALL[,ALL$BT %in% c("B1","B2","B3")]
+
+```
+
+
+### (a) Select the genes with different means over the patient groups with an ANOVA p-value smaller than 0.001.
+
+```{r}
+
+anova.pValue <-
+  apply(exprs(ALLB123), 1, function(x)
+    anova(lm(x ~ ALLB123$BT))$Pr[1])
+
+names <- featureNames(ALL)[anova.pValue < 0.001]
+names
+```
+
+### (b) Using rpart(), find a manner to identify the best 2 genes to predict the B-cell state.
+
+```{r}
+symb <- mget(names, env = hgu95av2SYMBOL)
+ALLBTnames <- ALLB123[names,]
+
+probeData <- as.matrix(exprs(ALLBTnames))
+row.names(probeData) <- unlist(symb)
+diagnosed <- factor(ALLBTnames$BT)
+rpartFit <- rpart(diagnosed ~ ., data = data.frame(t(probeData)))
+rpartFit$variable.importance[1:2]
+
+
+```
+
+
+
+
+### (c) Use rpart() again to construct the best overtall classification tree to predict the B-cell state.
+
+```{r}
+
+
+prp(
+  rpartFit,
+  branch.lwd = 4,
+  branch.col = "blue",
+  extra = 101
+)
+
+
+
+```
+
+
+### (d) How do the trees and misclassification rates differ?
+
+```{r}
+
+predicted.class <- predict(rpartFit, type = "class")
+predicted.probabilities <- predict(rpartFit, type = "prob")
+
+out <-
+  data.frame(predicted.probabilities,
+             predicted.class,
+             diagnosis = factor(ALLBTnames$BT))
+print(head(out, 10), digits = 2)
+rpartPredict <- predict(rpartFit, type = "class")
+table(rpartPredict, diagnosed)
+
+
+```
+> As we can see in the table, we predicted B1 with 2 false positives and 2 false negatives, 
+B2 had 1 false positive and 7 false negatives, and with B3 we had 0 false positives and 6 false negatives. This is likely due to the low P value used in the ANOVA test to reduce the numebr of genes.
+

@@ -1,0 +1,157 @@
+---
+title: "chapter_7_ASBUR_bates"
+author: "Ian Bates"
+date: "3/31/2022"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width = 10)
+knitr::opts_chunk$set(fig.height = 10)
+knitr::opts_chunk$set(fig.align = 'center')
+
+```
+
+### 1. Cluster analysis on Zyxin gene expression.
+
+```{r}
+data(golub, package = "multtest")
+zyxin <- grep("Zyxin", golub.gnames[, 2])
+golubFactor <- factor(golub.cl,
+                      levels = 0:1,
+                      labels = c("ALL", "AML"))
+
+```
+
+
+#### (a) Produce a scatter plot of the Zyxin gene expression values using different symbols for the two groups. 
+
+```{r}
+plot(
+  golub[zyxin,],
+  pch = as.numeric(golubFactor) + 15,
+  col = as.numeric(golubFactor) + 1,
+  xlab = 'Patient Index'
+)
+
+legend(
+  "bottomright",
+  legend = c("ALL", "AML"),
+  pch = 16:17,
+  col = c(2, 3)
+)
+
+
+```
+
+
+
+
+#### (b) Use single-linkage cluster analysis to see whether Zyxin gene expression falls into two different clusters. 
+
+```{r}
+
+
+plot(
+  hclust(dist(golub[zyxin, ], method = "euclidian"), method = "single"),
+  lwd = 3,
+  col = "blue",
+  col.axis = "brown",
+  ylab = "Distance",
+  xlab = "Single-linkage cluster analysis",
+  hang = -1,
+  main = NA,
+  sub = NA,
+  axes = FALSE
+)
+axis(
+  side = 2,
+  at = seq(0, 1.2, .2),
+  col = "brown",
+  labels = TRUE,
+  lwd = 4
+)
+
+
+
+```
+
+
+
+
+#### (c) Use k-means cluster analysis on Zyxin gene expression with k = 2 without any initial values. Then re-do the k-means clustering using the mean Zyxin expression of the ALL and AML patients as the initial parameters (Note that this is cheating!). Do the two clusters reflect the diagnosis of the patient groups either with or without the initial parameters? 
+
+
+```{r}
+cl <- kmeans(golub[zyxin,], 2)
+cl
+
+plot(golub[zyxin,], 
+     col = cl$cluster,
+     pch = as.numeric(golubFactor) + 15,
+     xlab = 'patient index'
+     
+     )
+
+legend(
+  "bottomright",
+  legend = c("ALL", "AML"),
+  pch = 16:17
+)
+
+
+```
+
+
+
+```{r}
+means <- as.matrix(tapply(golub[zyxin,],golubFactor,mean), nrow = 2, ncol=1, byrow=TRUE)
+
+cl<- kmeans(golub[zyxin,], means, 10)
+
+plot(golub[zyxin,], 
+     col = cl$cluster,
+     pch = as.numeric(golubFactor) + 15,
+     xlab = 'patient index'
+     )
+
+legend(
+  "bottomright",
+  legend = c("ALL", "AML"),
+  pch = 16:17
+)
+
+```
+
+
+#### (d) Did the clustering improve with the initial parameters? Did you get a perfect classifier? Why or why not? 
+
+> It appears that we did see an improvement with the inclusion of the means of the 2 classes of ALL and AML, but as the question suggested, this is cheating.  We did not receive a perfect classifier.  My suspicion is that we are evaluating a single vector with a known distribution of different groups with 1 group having 11 members and the second having 28.
+
+
+
+#### (e) Perform a bootstrap on the cluster means. Do the confidence intervals for the cluster means overlap?
+
+
+```{r}
+data <- golub[zyxin, ]
+n <- length(data)
+nboot <- 1000
+
+boot.cl <- matrix(0, nrow = nboot, ncol = 2)
+initial <- matrix(tapply(golub[zyxin,],golubFactor,mean), nrow = 2, ncol=1, byrow=TRUE)
+
+for (i in 1:nboot) {
+  dat.star <- data[sample(1:n, replace = TRUE)]
+  cl <- kmeans(dat.star, initial, nstart = 10)
+  boot.cl[i, ] <- c(cl$centers[1, ], cl$centers[2, ])
+}
+
+ quantile(boot.cl[,1],c(0.025,0.975))
+ quantile(boot.cl[,2],c(0.025,0.975))
+
+```
+>no, the confidence intervals do not overlap.
+
+

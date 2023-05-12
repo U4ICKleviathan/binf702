@@ -43,7 +43,7 @@ paste("Expected Trees:", answer.1.b)
 
 
 
-## Problem 2 Suppose the diameter at breast height (in.) of a certain type of tree is distributed normally with a mean of 8.8 and a standard deviation of 2.8 as suggested in Aedo-Ortiz, D. M., Olsen, E. D., & Kellogg, L. D. (1997). Simulating a harvester-forwarder softwood thinning: a software evaluation. Forest Products Journal, 47(5), 36.
+## Problem 2 - Suppose the diameter at breast height (in.) of a certain type of tree is distributed normally with a mean of 8.8 and a standard deviation of 2.8 as suggested in Aedo-Ortiz, D. M., Olsen, E. D., & Kellogg, L. D. (1997). Simulating a harvester-forwarder softwood thinning: a software evaluation. Forest Products Journal, 47(5), 36.
 
 ### (a)(2pts) What is the probability that the diameter of a randomly selected tree will be at least 10 inches? Will exceed 10 inches.
 
@@ -75,12 +75,10 @@ paste("Probability of tree diameter exceeding 10: ", p2.greater_than_10)
 
 ### (b)(3pts) What is the value of c so that the interval (8.8-c, 8.8+c) contains 98% of all diameter values
 
+>Since we want 98% of the values to be in between $8.8-c$ and $8.8+c$, I'm going to look for that value that is at the 99% percentile for the upper bound
+
+
 ```{r}
-
-
-# since we want 98% of the values to be in between 8.8-c and 8.8+c, I'm going to look
-# for that value that is at the 99% percentile for the upper bound
-
 
 p2.percentile <- 0.99
 
@@ -89,7 +87,11 @@ p2.val <- qnorm(p2.percentile, mean = p2.mean, sd = p2.sd)
 p2.c <- p2.val - p2.mean
 
 p2.c
+```
 
+>The value of c that contains 98% of all values is `r p2.c`
+
+```{r}
 # validation....
 
 pnorm(p2.mean + p2.c, mean = p2.mean, sd = p2.sd) - pnorm(p2.mean - p2.c, mean =
@@ -105,12 +107,13 @@ pnorm(p2.mean + p2.c, mean = p2.mean, sd = p2.sd) - pnorm(p2.mean - p2.c, mean =
 ### (a)(3pts) How unusal is it for the 5 men to have died? [Hint: Be careful to review my discussions on assessing extreme events. Also, use the binomial model.]
 
 ```{r}
-
-# DELETE THIS!!! pg. 96: https://www.usu.edu/math/corcoran/classes/old/11spring5100/readings/rosner04.pdf
 p3.n <- 100
 p3.event <- 5
 p3.p <- 0.020
 
+```
+
+```{r, include=FALSE}
 par(mfrow = c(1, 1))
 
 x <- 0:12
@@ -138,9 +141,9 @@ plot(
 
 ```
 
->When we're assessing the anomalous significance of `r p3.event` people dying in a population, we are going to assess the right tailed test $$Pr(X>=`r p3.event`|X~binom(`r p3.n`, `r p3.p`))$$
+>When we're assessing the anomalous significance of `r p3.event` people dying in a population, we are going to assess the right tailed test $Pr(X>=`r p3.event`|X~binom(`r p3.n`, `r p3.p`))$
 
->And because $$pbinom(x, ... , lower.tail = FALSE)$$ computes values for values strictly greater than x, we will have to subtract 1 from our event number `r p3.event`.
+>And because $pbinom(x, ... , lower.tail = FALSE)$ computes percentages for values strictly greater than x, we will have to subtract 1 from our event number `r p3.event`.
 
 ```{r}
 pbinom(p3.event - 1, size = p3.n, prob = p3.p, lower.tail = FALSE)
@@ -159,10 +162,10 @@ pbinom(p3.new_event-1, size = p3.n, prob = p3.p, lower.tail = FALSE)
 
 ```
 
->Now for this instance where 10 people die, significance of $$Pr(X>=`r p3.new_event`|X~binom(`r p3.n`, `r p3.p`)) gives us a tremendously small percentage $$`r pbinom(p3.new_event-1, size = p3.n, prob = p3.p, lower.tail = FALSE)`$$ which is a cause for concern.
+>Now for this instance where 10 people die, significance of $Pr(X>=`r p3.new_event`|X~binom(`r p3.n`, `r p3.p`))$ gives us a tremendously small percentage $`r pbinom(p3.new_event-1, size = p3.n, prob = p3.p, lower.tail = FALSE)`$ which is a cause for concern.
 
 
-## Problem 4 The incidence of a certain type of chromosome defect in the U.S. adult male population is beleived to be 1 in 75. A random sample of 800 individuals in U.S. penal institutions reveals 16 who have such defects. Can it be concluded that the incidence rate of this defect among prisoners differs from the preseumed rate of the entire adult population.
+## Problem 4 - The incidence of a certain type of chromosome defect in the U.S. adult male population is beleived to be 1 in 75. A random sample of 800 individuals in U.S. penal institutions reveals 16 who have such defects. Can it be concluded that the incidence rate of this defect among prisoners differs from the preseumed rate of the entire adult population.
 
 ### (a)(3pts) State and test the relevant hypothesis using α=.05. What type of error might you have made in reaching a conclusion?
 
@@ -170,10 +173,6 @@ pbinom(p3.new_event-1, size = p3.n, prob = p3.p, lower.tail = FALSE)
 >The null hypothesis is $$H_{0} = 1/75$$
 
 ```{r}
-# chapter 8, problem 67
-# less useful
-# https://www.chegg.com/homework-help/incidence-certain-type-chromosome-defect-us-adult-male-popul-chapter-8-problem-75e-solution-9780538733526-exc
-# https://www.chegg.com/homework-help/questions-and-answers/incidence-certain-type-chromosome-defect-us-adult-male-population-believed-1-75-random-sam-q14864927
 p4.rate <- 1/75
 p4.sample <- 800
 p4.incident <- 16
@@ -196,7 +195,7 @@ p4.binomTest$p.value
 
 
 
-## Problem 5 Two different fish attractors were compared during 16 time periods spanning 4 years. (Wilbur, R. L. (1978). Two types of fish attractors compared in Lake Tohopekaliga, Florida. Transactions of the American Fisheries Society, 107(5), 689-695.) I present the data as a set of ordered pairs where in each case the first entry is the “pipe attractor” and the second entry is the “brush attractor”
+## Problem 5 - Two different fish attractors were compared during 16 time periods spanning 4 years. (Wilbur, R. L. (1978). Two types of fish attractors compared in Lake Tohopekaliga, Florida. Transactions of the American Fisheries Society, 107(5), 689-695.) I present the data as a set of ordered pairs where in each case the first entry is the “pipe attractor” and the second entry is the “brush attractor”
 {(6.64,9.73), (7.89,8.21),(1.83,2.17),(.42,.75),(.85,1.61),(.29,.75),(.57,.83),(.63,.56),(.32,.76),(.37,.32),(.00,.48),(.11.,.52),(4.86,5.38),(1.80,2.33),(.23,.91,),(.58,.79)}
 
 ### (a)(4 pts) Perform the appropriate paired parameteric t-based test to compare the means.
@@ -225,8 +224,6 @@ print(brush_r)
 
 
 ```{r}
-# https://www.chegg.com/homework-help/questions-and-answers/5-two-different-fish-attractors-compared-16-time-periods-spanning-4-years-wilbur-r-l-1978--q45849673
-# https://www.chegg.com/homework-help/questions-and-answers/1-10-two-types-fish-attractors-one-made-vitrified-clay-pipes-cement-blocks-brush-used-16-d-q38083599
 pipe  <- c(6.64,7.89,1.83,0.42,0.85,0.29,0.57,0.63,0.32,0.37,0.00,0.11,4.86,1.80,0.23,0.58)
 brush <- c(9.73,8.21,2.17,0.75,1.61,0.75,0.83,0.56,0.76,0.32,0.48,0.52,5.38,2.33,0.91,0.79)
 
@@ -250,18 +247,18 @@ p5.var
 
 ```
 
->Since the F test for equal variances shows us that we cannon reject the null hypothesis of equal variances, becuase `r p5.var$p.value` > 0.05, we will utilize the t.test with var=TRUE.
+>Since the F test for equal variances shows us that we cannont reject the null hypothesis of equal variances, becuase `r p5.var$p.value` > 0.05, we will utilize the t.test with var=TRUE.
 
 
 ```{r}
 
-t.test(pipe, brush, var.equal = TRUE)
-
+p5.t.alt <- t.test(pipe, brush, var.equal = TRUE)
+p5.t.alt
 
 ```
+> When we look at the t test with equal variances, we see that the p value is `r p5.t.alt$p.value`, which is > 0.5.  So we would fail to reject the null of equal means.
 
-
-## Problem 6 The following article (Thomas, H. V., & Simmons, E. L. L. A. M. A. E. (1969). Histamine content in sputum from allergic and nonallergic individuals. Journal of applied physiology, 26(6), 793-797) reports the following data on sputum histamine levels (μg/g dry weight of sputum) for a sample of 9 individuals classified as allergics and 13 individuals classified as nonallergics.
+## Problem 6 - The following article (Thomas, H. V., & Simmons, E. L. L. A. M. A. E. (1969). Histamine content in sputum from allergic and nonallergic individuals. Journal of applied physiology, 26(6), 793-797) reports the following data on sputum histamine levels (μg/g dry weight of sputum) for a sample of 9 individuals classified as allergics and 13 individuals classified as nonallergics.
 
 Allergics = {67.7, 39.6,1651.0, 100.0, 65.9,1112.0,31.0, 102.4,64.7}
 Nonallergics = {34.3, 27.3, 35.4, 48.1, 5.2, 29.1, 4.7, 41.7, 48.0, 6.6, 18.9, 32.4, 45.5}
@@ -272,24 +269,28 @@ p6.allergics = c(67.7, 39.6,1651.0, 100.0, 65.9,1112.0,31.0, 102.4,64.7)
 p6.nonallergics = c(34.3,27.3,35.4,48.1,5.2,29.1,4.7,41.7,48.0,6.6,18.9,32.4,45.5)
 
 
-shapiro.test(p6.allergics)
-shapiro.test(p6.nonallergics)
+p6.allergics.st <- shapiro.test(p6.allergics)
+p6.non_allergics.st <- shapiro.test(p6.nonallergics)
 
-
+p6.allergics.st
+p6.non_allergics.st
 ```
+
+>We can see that for the Allergics, the Shapiro-Wilk Normality test returns a p value of `r p6.allergics.st$p.value`, which is < 0.05.  We therefore can reject the null hypothesis that the data is normally distributed.
+
+>For the Non-Allergics, we see that the p value is `r p6.non_allergics.st$p.value`, which is > 0.05, which means that we cannot reject the null hypothesis of normally distributed data.
+
 
 ### (b)(6pts) You should have seen that one of these failed the test. Perform the appropriate nonparametric test to compare the means. Does the P-value suggest that we can reject at the .01 level?
 ```{r}
-# https://www.chegg.com/homework-help/questions-and-answers/1-data-table-43-subset-data-obtained-thomas-simmons-1969-investigated-relation-sputum-hist-q45212501
-
 p6.w <- wilcox.test(p6.allergics, p6.nonallergics)
 p6.w
 ```
 
-> With a p value of `r p6.w$p.val`, we would reject the null hypothesis
+> With a p value of `r p6.w$p.val`, we would reject the null hypothesis even if alpha is 0.01
 
 
-## Problem 7 (10 pts) In a well-known genetics article (Yule, G. U. (1923). The progeny, in generations F 12 to F 17 of a cross between a yellow-wrinkled and a green-round seeded pea; a report on data afforded by experiments initiated by the late AD Darbishire, MA, in 1905, and conducted by him until his death in 1915. Journal of Genetics, 13(3), 255-331) the early statistician G. U. Yule analyzed data from crossing garden peas. The dominant alleles were Y = yellow color and R = round shape resulting in a double dominant YR. Yule examined 269 4 seed pods resulting from a dihybrid cross and counted the number of YR seeds in each pod. Letting X represent the number of seeds in a randomly selected pod with possible X values of 0, 1, 2, 3, and 4 which are identified with cells 1, 2, 3, 4, 5 of a 1 x 5 table. So a pod with X = 4 would have its count values in the 5th entry of the table.The hypothesis that the Mendelian laws are operative and that genetypes of individual seeds within a pod are independent of one another implies that X has a binomial distribution with n=4 and p=9/16. The null hypothesis is that the Medelian laws hold true and the alternative hypothesis is that they do not. The entry in the table (the observed seed counts) reading from the first to the fifth are {16,45,100,82,26}.The probabilities under Ho are given by the values of the binomial distribution with n=4 and p=9/16 as the number of seeds i obtains values in the set {0,1,2,3,4}. Notice that the observed seed count for the 0th case is 16, the 1 case 45, etc. Use the R function chisq.test to test H0. [Hint - You will have to setup a vector of the observed values and a vector of the expected probabilities. Use the values as detailed above.] Do we reject the null hypothesis at the α level of 0.1?
+## Problem 7 - (10 pts) In a well-known genetics article (Yule, G. U. (1923). The progeny, in generations F 12 to F 17 of a cross between a yellow-wrinkled and a green-round seeded pea; a report on data afforded by experiments initiated by the late AD Darbishire, MA, in 1905, and conducted by him until his death in 1915. Journal of Genetics, 13(3), 255-331) the early statistician G. U. Yule analyzed data from crossing garden peas. The dominant alleles were Y = yellow color and R = round shape resulting in a double dominant YR. Yule examined 269 4 seed pods resulting from a dihybrid cross and counted the number of YR seeds in each pod. Letting X represent the number of seeds in a randomly selected pod with possible X values of 0, 1, 2, 3, and 4 which are identified with cells 1, 2, 3, 4, 5 of a 1 x 5 table. So a pod with X = 4 would have its count values in the 5th entry of the table.The hypothesis that the Mendelian laws are operative and that genetypes of individual seeds within a pod are independent of one another implies that X has a binomial distribution with n=4 and p=9/16. The null hypothesis is that the Medelian laws hold true and the alternative hypothesis is that they do not. The entry in the table (the observed seed counts) reading from the first to the fifth are {16,45,100,82,26}.The probabilities under Ho are given by the values of the binomial distribution with n=4 and p=9/16 as the number of seeds i obtains values in the set {0,1,2,3,4}. Notice that the observed seed count for the 0th case is 16, the 1 case 45, etc. Use the R function chisq.test to test H0. [Hint - You will have to setup a vector of the observed values and a vector of the expected probabilities. Use the values as detailed above.] Do we reject the null hypothesis at the α level of 0.1?
 
 ```{r}
 p7.n <- 4
@@ -306,10 +307,10 @@ p7.chi_result
 
 ```
 
->No, we would not reject the null hypothesis as `r p7.chi_result$p.val`>0.1
+>No, we would not reject the null hypothesis as `r p7.chi_result$p.val`> 0.1
 
 
-## Problem 8 A Number of studies have shown lichens (certain plants composed of an algae and a fungus) to be excellant bioindicators of air pollution. The article Bruteig, I. E. (1993). The epiphytic lichen Hypogymnia physodes as a biomonitor of atmospheric nitrogen and sulphur deposition in Norway. Environmental monitoring and assessment, 26(1), 27-47. gives the following data (read from a graph) on x=NO; wt deposition (g N/m^2) and y = lichen N (%dry weight)
+## Problem 8 - A Number of studies have shown lichens (certain plants composed of an algae and a fungus) to be excellant bioindicators of air pollution. The article Bruteig, I. E. (1993). The epiphytic lichen Hypogymnia physodes as a biomonitor of atmospheric nitrogen and sulphur deposition in Norway. Environmental monitoring and assessment, 26(1), 27-47. gives the following data (read from a graph) on x=NO; wt deposition (g N/m^2) and y = lichen N (%dry weight)
 x = {0.05,0.10,0.11,0.12,0.31,0.37,0.42,0.58,0.68,0.68,0.73,0.85,0.92} 
 y = {0.48,0.55,0.48,0.50,0.58,0.52,1.02,0.86,0.86,1.00,0.88,1.04,1.70}
 
@@ -363,10 +364,11 @@ abline(p8.ls$coef,
 ### (b)(2pts) Predict lichens N for a NO value of .5 .
 ```{r}
 
-predict(p8.ls, newdata = data.frame(NO=c(0.5)))
+p8.predict <- predict(p8.ls, newdata = data.frame(NO=c(0.5)))
 
+unname(p8.predict)
 ```
-
+>The predicted Lichens N for a NO value of 0.5 is `r unname(p8.predict)`
 
 ### (c)(2pts) Does the model seem to be statistically significant based on the F statistic?
 
@@ -376,17 +378,14 @@ predict(p8.ls, newdata = data.frame(NO=c(0.5)))
 
 > About 0.7175 of the variance is explained by the regression.
 
-## Problem 9 An article Annest, J. L., Pirkle, J. L., Makuc, D., Neese, J. W., Bayse, D. D., & Kovar, M. G. (1983). Chronological trend in blood lead levels between 1976 and 1980.New England Journal of Medicine, 308(23), 1373-1377 gives the following data on y = average blood lead level of white children age 6 months to 5 years and x = amount of lead used in gasoline production (in 1000 tons) for ten 6-month periods.
+## Problem 9 - An article Annest, J. L., Pirkle, J. L., Makuc, D., Neese, J. W., Bayse, D. D., & Kovar, M. G. (1983). Chronological trend in blood lead levels between 1976 and 1980.New England Journal of Medicine, 308(23), 1373-1377 gives the following data on y = average blood lead level of white children age 6 months to 5 years and x = amount of lead used in gasoline production (in 1000 tons) for ten 6-month periods.
 
 x = {48,59,79,80,95,95,97,102,102,107} 
 y={9.3,11.0,12.8,14.1,13.6,13.8,14.6,14.6,16.0,18.2}.
 
 ### (a)(3 pts) Construct normal probability plots for x and y. Might it be reasonable to assume that they come from a bivariate normal distribution?
 
-```{r}
-
-# https://www.chegg.com/homework-help/article-chronological-trend-blood-lead-levels-n-engl-j-med-1-chapter-12-problem-65e-solution-9780534399337-exc
-
+```{r,  fig.align='center', fig.height=6, fig.width=6}
 p9.x <- c(48, 59, 79, 80, 95, 95, 97, 102, 102, 107)
 p9.y <- c(9.3, 11.0, 12.8, 14.1, 13.6, 13.8, 14.6, 14.6, 16.0, 18.2)
 
@@ -458,7 +457,7 @@ p9.cor
 > With the p value `r p9.cor$p.val`< 0.5, we can say that there is a linear relationship between blood lead level and the amount of lead used in gasoline production.
 
 
-## Problem 10 Suppose that systolic blood pressure, birth weight (oz) and age (days) are measure for a number of infants. Suppose that the data values ae given by 
+## Problem 10 - Suppose that systolic blood pressure, birth weight (oz) and age (days) are measure for a number of infants. Suppose that the data values ae given by 
 bp = {89,90,83,77,92,98,82,85,96,95,80,79,86,97,92,88} 
 bw = {135,120,100,105,130,125,125,105,120,90,120,95,120,150,160,125} 
 age = {3,4,3,2,4,5,2,3,5,4,2,3,3,4,3,3}
@@ -466,7 +465,6 @@ age = {3,4,3,2,4,5,2,3,5,4,2,3,3,4,3,3}
 ### (a)(6pts) Fit a multiple linear regression model given by bp = slope + (m1)(bw) + (m2)(age) + e where e is the error of the model distributed normally with a mean of 0 and a variance of σ^2
 
 ```{r}
-# https://www.chegg.com/homework-help/questions-and-answers/suppose-systolic-blood-pressure-birth-weight-oz-age-days-measure-number-infants-suppose-da-q45850529
 p10.bp <- c(89, 90, 83, 77, 92, 98, 82, 85, 96, 95, 80, 79, 86, 97, 92, 88)
 p10.bw <- c(135,120,100,105,130,125,125,105,120,90,120,95,120,150,160,125)
 p10.age <- c(3, 4, 3, 2, 4, 5, 2, 3, 5, 4, 2, 3, 3, 4, 3, 3)
@@ -479,20 +477,37 @@ summary(p10.ls)
 
 ```
 
+> The multiple linear regression model equation is bp = `r p10.ls$coefficients[1]` + `r p10.ls$coefficients[2]`(bw) + `r p10.ls$coefficients[3]` (age)
+
+```{r,fig.align='center', fig.height=10, fig.width=10, include=FALSE}
+par(mfrow=c(2,2))
+plot(p10.ls)
+
+```
+
 
 
 ### (b)(2 pts) Predict the bp for a baby with a weight of 8 pounds at 3 days of life.
 
 ```{r}
+p10.lbs <- 8
+p10.oz <- p10.lbs * 16
 
-predict(p10.ls, newdata = data.frame(bw=c(8), age=c(3)))
+
+p10.predict <- predict(p10.ls, newdata = data.frame(bw=c(p10.oz), age=c(3)))
+
 
 ```
+>The predeicted bp for the baby is `r unname(p10.predict)`
 
 
 ## (c)(2 pts) Interpret the regression coefficients of the model. [Hint - See the discussions in ISLR about the linear model of the advertising data.]
 
-## Problem 11 Consider the famous Fisher Iris data.
+> For every 1 oz in birth weight, while holding everything else constant, we can expect the BP to increase `r p10.ls$coefficients[2]`
+> For every day in age, while holding everything else constant, we can expect the the BB to increase `r p10.ls$coefficients[3]`
+
+
+## Problem 11 - Consider the famous Fisher Iris data.
 ```{r}
 library(datasets)
 data(iris)
@@ -502,7 +517,7 @@ data(iris)
 
 ### (a)(5pts) Make a pairs plot of this data coloring the observations based on the species designation using a red, green, blue color scheme and a plot symbol of pch = 21.[Hint: You will need to adjust the figure margin using oma=c(3,3,15) when you call pairs and also call par(xpd=TRUE) prior to calling legend. Position your legend in the bottomright of the plot]
 
-```{r}
+```{r, fig.align='center', fig.height=10, fig.width=10}
 
 oma=c(3,3,15)
 pairs(iris, 
@@ -512,7 +527,7 @@ pairs(iris,
       )
 par(xpd=TRUE)
 
-legend("bottomright", fill = unique(iris$Species), legend = c( levels(iris$Species)))
+legend("bottomright", col =  c("red", "green", "blue"), fill = unique(iris$Species), legend = c( levels(iris$Species)),)
 
 
 
@@ -524,7 +539,7 @@ legend("bottomright", fill = unique(iris$Species), legend = c( levels(iris$Speci
 ### (b)(5pts)Repeat the exercise of part (a) except produce a parallel coordinates plot.[Hint - It may be impossible to place the legend so it does not obscure the plot a little.]
 
 
-```{r}
+```{r, fig.align='center', fig.height=10, fig.width=10}
 
 library(MASS)
 parcoord(iris[, 1:4],
@@ -538,7 +553,7 @@ legend("bottomright",
 ```
 
 
-## Problem 12 Let’s return to the Fisher Iris data.
+## Problem 12 - Let’s return to the Fisher Iris data.
 
 ### (a)(5pts) Use the summary function to explore this data.
 ```{r}
@@ -548,9 +563,10 @@ summary(iris)
 
 ```
 
+>There appear to be 150 different observations with 50 different observations between 3 different species. Sepal.Width and Petal.Width seem to have the least variance between the maximum and minimul values.  THe petal.length appears to have the greatest variation.
 
 ### (b)(5pts) Create a 2 x 2 matrix of box plots of the Fisher iris data with the sepal width and sepal length in the first row and the petal width and petal length in the second row. Make sure that the boxplots are conditioned by species.
-```{r}
+```{r, fig.align='center', fig.height=10, fig.width=10}
 
 par(mfrow=c(2,2))
 

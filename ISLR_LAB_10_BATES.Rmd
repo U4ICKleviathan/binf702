@@ -47,6 +47,7 @@ names(pr.out)
 pr.out$center
 pr.out$scale
 pr.out$rotation
+pr.out$x
 ```
 
 ```{r}
@@ -234,7 +235,7 @@ dim(nci.data)
 ```
 
 ```{r}
- nci.labs[1:4]
+nci.labs[1:4]
 
 table(nci.labs)
 ```
@@ -244,7 +245,7 @@ table(nci.labs)
 
 ```{r}
 pr.out=prcomp(nci.data , scale=TRUE)
-
+length(pr.out$x)
 
 ```
 
@@ -313,6 +314,7 @@ col = "brown3"
 
 ```{r}
 sd.data=scale(nci.data)
+?scale
 ```
 
 
